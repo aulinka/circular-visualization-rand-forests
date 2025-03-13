@@ -51,12 +51,14 @@ export class MergedRandomForest {
     const treeRadius = (layersCount * layerRadius);
 
     for (let i = 0; i < layersCount; i++) {
-      this._layer_crosshair.add(new Konva.Circle({
+       this._layer_crosshair.add(new Konva.Circle({
         x: centerX,
         y: centerY,
         radius: ((i + 1) * layerRadius),
         stroke: 'black',
         strokeWidth: 1,
+        dash: [10,5],
+        dashEnabled: (i != layersCount-1)
       }));
     }
 
