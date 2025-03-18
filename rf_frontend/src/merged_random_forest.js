@@ -1,5 +1,6 @@
 import Konva from "konva";
 import { stage } from "./stage";
+import { CombinedTree, RandomForest } from "rf_shared";
 
 
 class TreeSegment {
@@ -20,7 +21,27 @@ function getLetterByIndex(index) {
   return result;
 }
 
+function murmurhash3_32(key, seed = 0) {
+  let h1 = seed ^ key;
+  h1 = Math.imul(h1, 0xcc9e2d51);
+  h1 = (h1 << 15) | (h1 >>> 17);
+  h1 = Math.imul(h1, 0x1b873593);
+  h1 ^= h1 >>> 13;
+  h1 = Math.imul(h1, 0x85ebca6b);
+  h1 ^= h1 >>> 16;
+  return h1 >>> 0; // Convert to unsigned 32-bit integer
+}
+
+function seededRandom(unsignedInt) {
+  const hash = murmurhash3_32(unsignedInt);
+  return (hash % 1000000) / 1000000; // Normalize to [0,1)
+}
+
+
 export class MergedRandomForest {
+  /** @type {RandomForest} */
+  #rf;
+
   async init() {
     this._layer_crosshair = new Konva.Layer();
     this._layer_connections = new Konva.Layer();
@@ -34,10 +55,13 @@ export class MergedRandomForest {
 
     const res = await fetch('/tree.json');
     const json = await res.json();
-    this._tree = json;
+
+    this.#rf = RandomForest.fromJSON(json);
 
     const centerX = stage.width() / 2;
     const centerY = stage.height() / 2;
+
+    const treesCount = this.#rf.trees.length;
     
     this._layer_crosshair.add(new Konva.Circle({
       x: centerX,
@@ -46,7 +70,11 @@ export class MergedRandomForest {
       fill: 'black'
     }));
 
-    const layersCount = this._tree.layersCount + 1;
+    let layersCount = 0;
+    for (const tree of this.#rf.combinedTrees) {
+      layersCount = Math.max(tree.layers.length, layersCount);
+    }
+    layersCount += 1;
     const layerRadius = 140;
     const treeRadius = (layersCount * layerRadius);
 
@@ -62,9 +90,10 @@ export class MergedRandomForest {
       }));
     }
 
+
     const treeSegments = [];
 
-    const rootNodesCount = this._tree.trees.length;
+    const rootNodesCount = this.#rf.combinedTrees.length;
     const segmentSize = ((Math.PI*2) / (rootNodesCount))
     for (let i = 0; i < rootNodesCount; i++) {
       const angle = (i * segmentSize) + (Math.PI/2);
@@ -81,13 +110,14 @@ export class MergedRandomForest {
 
     const posCache = {};
 
-    for (const treeIndex in this._tree.trees) {
-      const tree = this._tree.trees[treeIndex];
+    for (const treeIndex in this.#rf.combinedTrees) {
+      /** @type {CombinedTree} */
+      const tree = this.#rf.combinedTrees[treeIndex];
       const seg = treeSegments[treeIndex];
 
       const angleStart = seg.angleStart;
       const angleSize = seg.angle;
-      const treeLayersCount = Object.keys(tree.layers).length;
+      const treeLayersCount = tree.layers.length;
 
       for (let i = 0; i < treeLayersCount; i++) {
         const layer = tree.layers[i];
@@ -95,9 +125,11 @@ export class MergedRandomForest {
 
         const partOffset = angleSize / (layer.length + 1);
         for (const nodeIndex in layer) {
-          const nodeId = layer[nodeIndex];
-          const node = this._tree.nodes.find(n => n.id === nodeId);
-          const angle = partOffset * (parseInt(nodeIndex)+1);
+          const node = layer[nodeIndex];
+          const nodeId = node.id;
+          let angle = partOffset * (parseInt(nodeIndex)+1);
+          angle += (seededRandom(nodeId) * 0.05) - 0.025;
+          
           const x = Math.sin(angleStart + angle) * distance;
           const y = Math.cos(angleStart + angle) * distance;
           posCache[nodeId] = {
@@ -116,29 +148,46 @@ export class MergedRandomForest {
             width: 200,
             height: 30,
             // text: getLetterByIndex(node.feature) + " " + node.id,
-            // text: getLetterByIndex(node.feature),
-            text: this._tree.features.find(f => f.id == node.feature).name,
+            // text: getLetterByIndex(node.feature.id),
+            text: node.feature.name,
             align: 'center',
             verticalAlign: 'middle',
             fontSize: 20,
           }));
-          const createLine = (pId) => {
+          const createLine = (pId, score) => {
             let pPos = posCache[pId];
             if (pId == null) {
               pPos = {x:0, y:0};
             }
+            const coords = [centerX + x, centerY + y, centerX + pPos.x, centerY + pPos.y];
             const line = new Konva.Line({
-              points: [centerX + x, centerY + y, centerX + pPos.x, centerY + pPos.y],
+              points: coords,
               stroke: 'purple',
               strokeWidth: 1
             });
             this._layer_connections.add(line);
+            const midX = (coords[0] + coords[2]) / 2;
+            const midY = (coords[1] + coords[3]) / 2;
+            if (score != null) {
+              this._layer_connections.add(new Konva.Text({
+                align: 'center',
+                verticalAlign: 'middle',
+                text: `${(score * 100.0).toFixed(2)}%`,
+                width: 300,
+                height: 300,
+                x: midX - 150,
+                y: midY - 150,
+                fontSize: 20,
+                fontFamily: 'Calibri',
+                fill: 'black'
+              }));
+            }
           };
-          if (node.parent != null || node.rootNode == null) {
-            createLine(node.parent);
+          if (node.level == 0) {
+            createLine(null);
           }
-          for (const pId of node.parents ?? []) {
-            createLine(pId);
+          for (const edge of node.inEdges) {
+            createLine(edge.from.id, edge.inTrees.length / treesCount);
           }
         }
         // break;
@@ -150,8 +199,7 @@ export class MergedRandomForest {
         const partOffset = angleSize / (layer.length + 1);
 
         for (const nodeIndex in layer) {
-          const nodeId = layer[nodeIndex];
-          const node = this._tree.nodes.find(n => n.id === nodeId);
+          const node = tree.leafLayer[nodeIndex];
           const angle = partOffset * (parseInt(nodeIndex)+1);
           const x = Math.sin(angleStart + angle) * distance;
           const y = Math.cos(angleStart + angle) * distance;
@@ -169,7 +217,7 @@ export class MergedRandomForest {
             height: 30,
             // text: getLetterByIndex(node.feature) + " " + node.id,
             // text: getLetterByIndex(node.feature),
-            text: this._tree.classes.find(c => c.id == node.class).name,
+            text: node.target.name,
             align: 'center',
             verticalAlign: 'middle',
             fontSize: 20,
@@ -186,11 +234,8 @@ export class MergedRandomForest {
             });
             this._layer_connections.add(line);
           };
-          if (node.parent != null || node.rootNode == null) {
-            createLine(node.parent);
-          }
-          for (const pId of node.parents ?? []) {
-            createLine(pId);
+          for (const edge of node.inEdges) {
+            createLine(edge.from.id, 0);
           }
         }
       }

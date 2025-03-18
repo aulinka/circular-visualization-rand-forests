@@ -7,6 +7,8 @@ from random_forest import Classification
 import matplotlib.pyplot as plt
 
 iris_dataset = load_iris()
+# print(iris_dataset.data)
+# exit(0)
 # iris_dataset = load_breast_cancer()
 c = Classification(iris_dataset=iris_dataset)
 rf_object = c.random_forest_calc()
@@ -33,7 +35,7 @@ tree_count = 0
 
 final_json_object = {}
 feature_names_object = {
-    "class_names": iris_dataset.target_names.tolist()
+    "target_names": iris_dataset.target_names.tolist()
 }
 
 feature_names_object["feature_names"] = iris_dataset.feature_names # .tolist(),
@@ -59,13 +61,13 @@ for tree1 in rf_object.random_forest.estimators_:
         "children_left": tree1.tree_.children_left.tolist(),
         "children_right": tree1.tree_.children_right.tolist(),
         "threshold": tree1.tree_.threshold.tolist(),
-        "feature": tree1.tree_.feature.tolist(),
+        "features": tree1.tree_.feature.tolist(),
         "label": node_labels.tolist(),
         "values": tree1.tree_.value.tolist()
     }
     # print(json.dumps(obj, indent=2))
-    if tree_obj["feature"][0] not in root_node_feature:
-        root_node_feature.append(tree_obj["feature"][0])
+    if tree_obj["features"][0] not in root_node_feature:
+        root_node_feature.append(tree_obj["features"][0])
     json_array.append(tree_obj)
     tree_count += 1
 
@@ -76,11 +78,13 @@ final_json_object["trees"] = json_array
 with open('data.json', 'w') as f:
     json.dump(final_json_object, f, indent=2)
 
-if False:
+if True:
     idd = 0
     for tree1 in rf_object.random_forest.estimators_:
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(20, 20))
         tree.plot_tree(tree1,
+                    node_ids=True,
+                    # proportion=True,
                     feature_names=iris_dataset.feature_names,
                     class_names=iris_dataset.target_names,
                     filled=True)

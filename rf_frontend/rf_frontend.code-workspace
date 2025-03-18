@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../rf_shared"
+		}
+	],
+	"settings": {}
+}

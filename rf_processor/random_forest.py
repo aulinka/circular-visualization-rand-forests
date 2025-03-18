@@ -17,7 +17,7 @@ class Classification:
     def random_forest_calc(self):
         x, y = self.dataset.data, self.dataset.target
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
-        random_forest = RandomForestClassifier(n_estimators=500, random_state=42)
+        random_forest = RandomForestClassifier(n_estimators=10, random_state=42)
         random_forest.fit(x_train, y_train)
         y_predicted = random_forest.predict(x_test)
 
