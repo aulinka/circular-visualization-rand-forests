@@ -138,25 +138,43 @@ export class MergedRandomForest {
           posCache[nodeId] = {
             x, y
           };
+          
+          console.log(node.feature.name)
 
-          this._layer_nodes.add(new Konva.Circle({
+          const rot = 180 - (angleStart + angle) * (180/Math.PI);
+          const text = new Konva.Text({
             x: centerX + x,
             y: centerY + y,
-            radius: 30.0,
-            fill: 'red'
-          }));
-          this._layer_nodes.add(new Konva.Text({
-            x: centerX + x - 15,
-            y: centerY + y - 15,
-            width: 30,
+            width: 50,
             height: 30,
-            // text: getLetterByIndex(node.feature) + " " + node.id,
-            // text: getLetterByIndex(node.feature.id),
             text: node.feature.name,
+            rotation: rot,
             align: 'center',
             verticalAlign: 'middle',
-            fontSize: 10,
+            fontSize: 10
+          });
+
+          const width = text.width();
+          const height = text.height();
+          text.offsetX(width/2);
+          text.offsetY(height/2);
+
+          this._layer_nodes.add(new Konva.Rect({
+            x: centerX + x,
+            y: centerY + y,
+            width: width,
+            height: height,
+            offsetX: width/2,
+            offsetY: height/2,
+            rotation: rot,
+            cornerRadius: 10,
+            fill: '#7ba7cc',
+            stroke: 'black',
+            strokeWidth: 1
           }));
+
+          this._layer_nodes.add(text);
+
           const createLine = (pId, score) => {
             let pPos = posCache[pId];
             if (pId == null) {
@@ -165,7 +183,7 @@ export class MergedRandomForest {
             const coords = [centerX + x, centerY + y, centerX + pPos.x, centerY + pPos.y];
             const line = new Konva.Line({
               points: coords,
-              stroke: 'purple',
+              stroke: '#ffb347 ',
               strokeWidth: lerp(0.5, 10, score ?? 0.1)
             });
             this._layer_connections.add(line);
@@ -235,8 +253,10 @@ export class MergedRandomForest {
             offsetX: width/2,
             offsetY: height/2,
             rotation: rot,
-            // radius: 30.0,
-            fill: 'green'
+            cornerRadius: 15,
+            fill: 'rgba(152, 251, 152, 1)',
+            stroke: 'black',
+            strokeWidth: 1
           }));
           this._layer_nodes.add(text);
           const createLine = (pId) => {
@@ -246,7 +266,7 @@ export class MergedRandomForest {
             }
             const line = new Konva.Line({
               points: [centerX + x, centerY + y, centerX + pPos.x, centerY + pPos.y],
-              stroke: 'rgba(0,255,0,0.5)',
+              stroke: 'purple',
               strokeWidth: 1
             });
             this._layer_connections.add(line);
