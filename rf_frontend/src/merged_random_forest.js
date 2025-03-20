@@ -97,6 +97,7 @@ export class MergedRandomForest {
     const treeSegments = [];
 
     const rootNodesCount = this.#rf.combinedTrees.length;
+    // const rootNodesCount = 1;
     const segmentSize = ((Math.PI*2) / (rootNodesCount))
     for (let i = 0; i < rootNodesCount; i++) {
       const angle = (i * segmentSize)// + (Math.PI/2);
@@ -113,7 +114,7 @@ export class MergedRandomForest {
 
     const posCache = {};
 
-    for (const treeIndex in this.#rf.combinedTrees) {
+    for (const treeIndex in treeSegments) {
       /** @type {CombinedTree} */
       const tree = this.#rf.combinedTrees[treeIndex];
       const seg = treeSegments[treeIndex];
@@ -205,7 +206,7 @@ export class MergedRandomForest {
             }
           };
           if (node.level == 0) {
-            createLine(null);
+            createLine(null, node.inTrees.length / treesCount);
           }
           for (const edge of node.inEdges) {
             createLine(edge.from.id, edge.inTrees.length / treesCount);
