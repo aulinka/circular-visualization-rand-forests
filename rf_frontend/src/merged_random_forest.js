@@ -100,9 +100,9 @@ export class MergedRandomForest {
     // const rootNodesCount = 1;
     const segmentSize = ((Math.PI*2) / (rootNodesCount))
     for (let i = 0; i < rootNodesCount; i++) {
-      const angle = (i * segmentSize)// + (Math.PI/2);
-      const x = Math.sin(angle) * treeRadius;
-      const y = Math.cos(angle) * treeRadius;
+      const angle = (i * segmentSize); // + (Math.PI/2);
+      const x = Math.cos(angle) * treeRadius;
+      const y = Math.sin(angle) * -treeRadius;
       const line = new Konva.Line({
         points: [centerX, centerY, centerX + x, centerY + y],
         stroke: 'black',
@@ -134,15 +134,13 @@ export class MergedRandomForest {
           let angle = partOffset * (parseInt(nodeIndex)+1);
           angle += (seededRandom(nodeId) * 0.05) - 0.025;
           
-          const x = Math.sin(angleStart + angle) * distance;
-          const y = Math.cos(angleStart + angle) * distance;
+          const x = Math.cos(angleStart + angle) * distance;
+          const y = Math.sin(angleStart + angle) * -distance;
           posCache[nodeId] = {
             x, y
           };
           
-          console.log(node.feature.name)
-
-          const rot = 180 - (angleStart + angle) * (180/Math.PI);
+          let rot = (450 - (angleStart + angle) * (180/Math.PI)) % 360;
           const text = new Konva.Text({
             x: centerX + x,
             y: centerY + y,
@@ -152,7 +150,7 @@ export class MergedRandomForest {
             rotation: rot,
             align: 'center',
             verticalAlign: 'middle',
-            fontSize: 10
+            fontSize: 10,
           });
 
           const width = text.width();
@@ -171,7 +169,7 @@ export class MergedRandomForest {
             cornerRadius: 10,
             fill: '#7ba7cc',
             stroke: 'black',
-            strokeWidth: 1
+            strokeWidth: 1,
           }));
 
           this._layer_nodes.add(text);
@@ -223,10 +221,10 @@ export class MergedRandomForest {
         for (const nodeIndex in layer) {
           const node = tree.leafLayer[nodeIndex];
           const angle = partOffset * (parseInt(nodeIndex)+1);
-          const x = Math.sin(angleStart + angle) * distance;
-          const y = Math.cos(angleStart + angle) * distance;
+          const x = Math.cos(angleStart + angle) * distance;
+          const y = Math.sin(angleStart + angle) * -distance;
           
-          const rot = 180 - (angleStart + angle) * (180/Math.PI);
+          let rot = (450 - (angleStart + angle) * (180/Math.PI)) % 360;
 
           const text = new Konva.Text({
             x: centerX + x,
