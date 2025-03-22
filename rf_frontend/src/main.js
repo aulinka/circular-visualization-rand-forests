@@ -1,10 +1,13 @@
-import './style.css';
 import Konva from "konva";
 import { stage } from "./stage.js";
 import { MergedRandomForest } from "./merged_random_forest.js";
 
+import './css/style.scss'
+import { panel } from "./panel/panel.js";
+
 
 async function main() {
+  panel.init();
   const mrf = new MergedRandomForest();
   await mrf.init();
 }
