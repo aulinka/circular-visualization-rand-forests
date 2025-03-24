@@ -1,0 +1,18 @@
+export const radToDeg = (rad) => rad * (180/Math.PI);
+export const lerp = ( a, b, alpha ) => a + alpha * ( b - a );
+
+function murmurhash3_32(key, seed = 0) {
+  let h1 = seed ^ key;
+  h1 = Math.imul(h1, 0xcc9e2d51);
+  h1 = (h1 << 15) | (h1 >>> 17);
+  h1 = Math.imul(h1, 0x1b873593);
+  h1 ^= h1 >>> 13;
+  h1 = Math.imul(h1, 0x85ebca6b);
+  h1 ^= h1 >>> 16;
+  return h1 >>> 0; // Convert to unsigned 32-bit integer
+}
+
+export function seededRandom(unsignedInt) {
+  const hash = murmurhash3_32(unsignedInt);
+  return (hash % 1000000) / 1000000; // Normalize to [0,1)
+}

@@ -1,6 +1,7 @@
 import Konva from "konva";
 import { stage } from "./stage";
 import { CombinedTree, RandomForest } from "rf_shared";
+import { lerp, radToDeg, seededRandom } from "./utils";
 
 
 class TreeSegment {
@@ -21,25 +22,6 @@ function getLetterByIndex(index) {
   return result;
 }
 
-function murmurhash3_32(key, seed = 0) {
-  let h1 = seed ^ key;
-  h1 = Math.imul(h1, 0xcc9e2d51);
-  h1 = (h1 << 15) | (h1 >>> 17);
-  h1 = Math.imul(h1, 0x1b873593);
-  h1 ^= h1 >>> 13;
-  h1 = Math.imul(h1, 0x85ebca6b);
-  h1 ^= h1 >>> 16;
-  return h1 >>> 0; // Convert to unsigned 32-bit integer
-}
-
-function seededRandom(unsignedInt) {
-  const hash = murmurhash3_32(unsignedInt);
-  return (hash % 1000000) / 1000000; // Normalize to [0,1)
-}
-
-function lerp( a, b, alpha ) {
-  return a + alpha * ( b - a );
-}
 
 export class MergedRandomForest {
   /** @type {RandomForest} */
@@ -109,6 +91,16 @@ export class MergedRandomForest {
         strokeWidth: 1
       });
       this._layer_crosshair.add(line);
+      // this._layer_crosshair.add(new Konva.Arc({
+      //   x: centerX,
+      //   y: centerY,
+      //   innerRadius: 0,
+      //   outerRadius: treeRadius,
+      //   angle: radToDeg(segmentSize),
+      //   fill: 'rgba(255, 124, 124, 0.6)',
+      //   rotation: radToDeg(angle),
+      // }));
+
       treeSegments.push(new TreeSegment(angle, segmentSize));
     }
 
@@ -140,7 +132,7 @@ export class MergedRandomForest {
             x, y
           };
           
-          let rot = (450 - (angleStart + angle) * (180/Math.PI)) % 360;
+          let rot = (450 - radToDeg(angleStart + angle)) % 360;
           const text = new Konva.Text({
             x: centerX + x,
             y: centerY + y,

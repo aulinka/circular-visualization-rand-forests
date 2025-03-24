@@ -1,5 +1,5 @@
 import { mount } from 'svelte'
-import App from './Panel.svelte'
+import App from './RightPanel.svelte'
 
 export class Panel {
   init() {

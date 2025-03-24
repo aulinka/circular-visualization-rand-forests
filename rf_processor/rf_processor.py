@@ -25,7 +25,7 @@ def main():
 def test():
     if True:
         rf = RandomForest({
-            "model": "penguins-rf.csv",
+            "model": "iris",
             "test_size": 0.3,
             "trees_count": 10,
             "random_state": 42,

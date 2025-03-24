@@ -9,6 +9,17 @@ import CTEdge from "./ctedge.js";
 import utils from "./utils.js";
 
 export default class RandomForest {
+  info = {
+    /** @type {?string} */
+    model: null,
+    /** @type {?number} */
+    testSize: null,
+    /** @type {?number} */
+    randomState: null,
+    /** @type {?number} */
+    accuracy: null,
+  };
+
   /** @type {Feature[]} */
   features = [];
   /** @type {Target[]} */
@@ -106,6 +117,7 @@ export default class RandomForest {
     rf.trees = json.trees;
     rf.nodes = json.nodes;
     rf.combinedTrees = json.combinedTrees;
+    rf.info = json.info;
     utils.resolveReferences(rf, rf, 'trees');
     utils.resolveReferences(rf, rf, 'nodes');
     utils.resolveReferences(rf, rf, 'combinedTrees');

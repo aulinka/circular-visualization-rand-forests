@@ -1,5 +1,6 @@
 import { Feature, Node, RandomForest, Target, Tree } from "rf_shared";
 import assert from 'assert';
+import utils from "rf_shared/src/utils.js";
 
 const NODE_IS_LEAF = -1;
 
@@ -17,6 +18,12 @@ export class Parser {
     parse(rfProcData) {
         this.#forest = JSON.parse(rfProcData);
         this.#finalForest = new RandomForest();
+
+        this.#finalForest.info.model = this.#forest.config.model;
+        this.#finalForest.info.randomState = this.#forest.config.random_state;
+        this.#finalForest.info.testSize = this.#forest.config.test_size;
+        this.#finalForest.info.accuracy = this.#forest.accuracy;
+
         for (const [ key, val ] of this.#forest.feature_names.entries()) {
             this.#finalForest.features.push(new Feature(parseInt(key), val));
         }
