@@ -90,18 +90,16 @@ export default class Combinator {
         if (!ctNode.inTrees.includes(this.#curTree)) {
             ctNode.inTrees.push(this.#curTree);
         }
-        if (parent != null) {
-            let edge = this.#curCTree.edges.find(e => e.from == parent && e.to == ctNode);
-            if (edge == null) {
-                edge = new CTEdge(parent, ctNode);
-                this.#rf.addCTEdge(edge);
-                this.#curCTree.edges.push(edge);
-                parent.outEdges.push(edge);
-                ctNode.inEdges.push(edge);
-            }
-            if (!edge.inTrees.includes(this.#curTree)) {
-                edge.inTrees.push(this.#curTree);
-            }
+        let edge = this.#curCTree.edges.find(e => e.from == parent && e.to == ctNode);
+        if (edge == null) {
+            edge = new CTEdge(parent, ctNode);
+            this.#rf.addCTEdge(edge);
+            this.#curCTree.edges.push(edge);
+            parent?.outEdges.push(edge);
+            ctNode.inEdges.push(edge);
+        }
+        if (!edge.inTrees.includes(this.#curTree)) {
+            edge.inTrees.push(this.#curTree);
         }
 
         if (!isLeaf) {
