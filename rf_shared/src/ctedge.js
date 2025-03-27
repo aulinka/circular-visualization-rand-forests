@@ -4,12 +4,14 @@ import Tree from "./tree.js";
 import utils from "./utils.js";
 
 export default class CTEdge extends Entity {
-  /** @type {CTNode} */
+  /** @type {CTNode?} */
   from;
   /** @type {CTNode} */
   to;
   /** @type {Tree[]} */
   inTrees = [];
+  /** @type {number?} */
+  score;
 
   constructor(from, to) {
     super('ctedge');

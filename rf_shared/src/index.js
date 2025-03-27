@@ -6,3 +6,4 @@ export { default as Entity } from './entity.js';
 export { default as Node } from './node.js';
 export { default as CTNode } from './ctnode.js';
 export { default as CombinedTree } from './combined_tree.js';
+export { default as CTEdge } from './ctedge.js';

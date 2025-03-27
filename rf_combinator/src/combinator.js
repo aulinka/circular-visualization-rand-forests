@@ -24,6 +24,31 @@ export default class Combinator {
             this.#curLevel = 0;
             this.#parseNode(tree.nodes[0]);
         }
+        this.#calculateEdgeScores();
+        this.#calculateNodeAverageFeatureThresholds();
+    }
+
+    #calculateEdgeScores() {
+        const cTreesCount = this.#rf.trees.length;
+        for (const entity of this.#rf.entities) {
+            if (entity instanceof CTEdge) {
+                /** @type {CTEdge} */
+                let edge = entity;
+                edge.score = edge.inTrees.length / cTreesCount;
+            }
+        }
+    }
+
+    #calculateNodeAverageFeatureThresholds() {
+        for (const entity of this.#rf.entities) {
+            if (entity instanceof CTNode) {
+                /** @type {CTNode} */
+                let ctNode = entity;
+                if (ctNode.feature == null) continue;
+                const thresholds = ctNode.nodes.map(n => n.featureThreshold);
+                ctNode.averageFeatureThreshold = thresholds.reduce((sum, num) => sum + num, 0) / thresholds.length;
+            }
+        }
     }
 
     /**

@@ -1,5 +1,8 @@
 import CTEdge from "./ctedge.js";
 import Entity from "./entity.js";
+import Feature from "./feature.js";
+import Node from "./node.js";
+import Target from "./target.js";
 import Tree from "./tree.js";
 import utils from "./utils.js";
 
@@ -18,6 +21,8 @@ export default class CTNode extends Entity {
   inTrees = [];
   /** @type {Node[]} */
   nodes = [];
+  /** @type {number?} */
+  averageFeatureThreshold;
 
   constructor() {
     super('ctnode');
