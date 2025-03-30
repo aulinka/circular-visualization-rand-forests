@@ -46,7 +46,7 @@ export default class Combinator {
         let ctNode = entity;
         if (ctNode.feature == null) continue;
         const thresholds = ctNode.nodes.map(n => n.featureThreshold);
-        ctNode.averageFeatureThreshold = thresholds.reduce((sum, num) => sum + num, 0) / floats.length;
+        ctNode.averageFeatureThreshold = thresholds.reduce((sum, num) => sum + num, 0) / thresholds.length;
       }
     }
   }
