@@ -1,11 +1,14 @@
 import utils from "./utils.js";
 
 export default class Target {
+  intervalMin;
+  intervalMax;
+
   /** @param {string} name */
   constructor (id, name) {
     /** @type {number} */
     this.id = id;
-    /** @type {string} */
+    /** @type {string?} */
     this.name = name;
   }
   

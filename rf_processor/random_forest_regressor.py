@@ -1,6 +1,7 @@
-from sklearn.datasets import load_iris, load_breast_cancer
+from sklearn.cluster import KMeans
+from sklearn.datasets import load_iris, load_breast_cancer, load_diabetes
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+import sklearn.ensemble as skl
 from sklearn.metrics import accuracy_score
 import numpy
 import matplotlib.pyplot as plt
@@ -8,16 +9,16 @@ from sklearn import tree
 import pandas as pd
 from sklearn.utils import Bunch
 
-class RandomForest:
+class RandomForestRegressor:
     def __init__(self, config):
         self.config = config
-        self.rfc: RandomForestClassifier = None
+        self.rfr: skl.RandomForestRegressor = None
         self.accuracy = 0.0
         self.model = None
     
     def process(self):
-        if self.config['model'] == "iris":
-            self.model = load_iris()
+        if self.config['model'] == "diabetes":
+            self.model = load_diabetes()
         else:
             self.model = self.load_model(self.config['model'])
 
@@ -25,12 +26,40 @@ class RandomForest:
         x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                             test_size=self.config['test_size'],
                                                             random_state=self.config['random_state'])
-        rfc = RandomForestClassifier(n_estimators=self.config['trees_count'],
+        rfr = skl.RandomForestRegressor(n_estimators=self.config['trees_count'],
                                      random_state=self.config['random_state'])
-        rfc.fit(x_train, y_train)
-        y_predicted = rfc.predict(x_test)
-        self.accuracy = accuracy_score(y_test, y_predicted)
-        self.rfc = rfc
+        rfr.fit(x_train, y_train)
+        # y_predicted = rfc.predict(x_test)
+        # self.accuracy = accuracy_score(y_test, y_predicted)
+        self.rfr = rfr
+        self.detect_clusters()
+
+    def detect_clusters(self):
+        leaf_values = []
+
+        for estimator in self.rfr.estimators_:
+            tree = estimator.tree_
+            leaf_indices = numpy.where(tree.children_left == -1)[0]
+            values = tree.value[leaf_indices, 0, 0]
+            leaf_values.extend(values)
+
+        leaf_values = numpy.array(leaf_values)
+
+        leaf_values_reshaped = leaf_values.reshape(-1, 1)
+
+        n_clusters = 3 # TODO
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        kmeans.fit(leaf_values_reshaped)
+        labels = kmeans.labels_
+
+        # Step 3: For every cluster, calculate the interval <min, max> of the values.
+        self.intervals = {}
+        for cluster in range(n_clusters):
+            cluster_values = leaf_values[labels == cluster]
+            min_val = cluster_values.min()
+            max_val = cluster_values.max()
+            self.intervals[cluster] = (min_val, max_val)
+            
 
     def load_model(self, model_path):
         df = pd.read_csv(model_path, header = 0)
@@ -51,11 +80,6 @@ class RandomForest:
         tree_count = 0
         out = {}
         feature_names_object = {}
-
-        if isinstance(self.model.target_names,numpy.ndarray):
-            feature_names_object["target_names"] = self.model.target_names.tolist()
-        else:
-            feature_names_object["target_names"] = self.model.target_names
         
         if isinstance(self.model.feature_names,numpy.ndarray):
             feature_names_object["feature_names"] = self.model.feature_names.tolist()
@@ -65,7 +89,7 @@ class RandomForest:
         root_node_feature = []
         forest_max_depth = 0
         json_array = []
-        for tree1 in self.rfc.estimators_:
+        for tree1 in self.rfr.estimators_:
             node_labels = numpy.empty(tree1.tree_.node_count, dtype=int)
             j = 0
             for i in range(tree1.tree_.node_count):
@@ -95,6 +119,7 @@ class RandomForest:
 
         out["config"] = self.config
         out["accuracy"] = self.accuracy
+        out["targets"] = self.intervals
         out["max_forest_depth"] = forest_max_depth
         out["root_node_feature"] = root_node_feature
         out.update(feature_names_object)
@@ -102,13 +127,13 @@ class RandomForest:
         return out
     def generate_images(self):
         id = 0
-        for tree1 in self.rfc.estimators_:
-            plt.figure(figsize=(20, 20))
+        for tree1 in self.rfr.estimators_:
+            plt.figure(figsize=(200, 200))
             tree.plot_tree(tree1,
                         node_ids=True,
                         # proportion=True,
                         feature_names=self.model.feature_names,
-                        class_names=self.model.target_names,
+                        class_names=self.model.target,
                         filled=True)
             plt.savefig(f"rf{id}.png")
             plt.close()

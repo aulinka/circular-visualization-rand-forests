@@ -1,12 +1,13 @@
 import json
 import subprocess
 import sys
-from random_forest import RandomForest
+from random_forest_clasifier import RandomForestClassifier
+from random_forest_regressor import RandomForestRegressor
 
 def main():
     config = json.load(sys.stdin)
     try:
-        rf = RandomForest(config)
+        rf = RandomForestClassifier(config)
         rf.process()
         out = rf.generate_json()
         with open(config['output_file'], 'w') as f:
@@ -24,15 +25,16 @@ def main():
 
 def test():
     if True:
-        rf = RandomForest({
-            "model": "iris",
+        rf = RandomForestRegressor({
+            "type": "regression",
+            "model": "advertising.csv",
             "test_size": 0.3,
             "trees_count": 10,
             "random_state": 42,
         })
         rf.process()
         out = rf.generate_json()
-        with open('data2.json', 'w') as f:
+        with open('data.json', 'w') as f:
             json.dump(out, f, indent=2)
         # rf.generate_images()
     else:

@@ -20,6 +20,7 @@ export class Parser {
     this.#finalForest = new RandomForest();
 
     this.#finalForest.info.model = this.#forest.config.model;
+    this.#finalForest.info.type = this.#forest.config.type;
     this.#finalForest.info.randomState = this.#forest.config.random_state;
     this.#finalForest.info.testSize = this.#forest.config.test_size;
     this.#finalForest.info.accuracy = this.#forest.accuracy;
@@ -27,8 +28,18 @@ export class Parser {
     for (const [ key, val ] of this.#forest.feature_names.entries()) {
       this.#finalForest.features.push(new Feature(parseInt(key), val));
     }
-    for (const [ key, val ] of this.#forest.target_names.entries()) {
-      this.#finalForest.targets.push(new Target(parseInt(key), val));
+    if (this.#finalForest.info.type == "regression") {
+      for (const [ key, val ] of Object.entries(this.#forest.targets)) {
+        const tgt = new Target(parseInt(key), null);
+        tgt.intervalMin = val[0];
+        tgt.intervalMax = val[1];
+        tgt.name = `<${tgt.intervalMin}...${tgt.intervalMax}>`;
+        this.#finalForest.targets.push(tgt);
+      }
+    } else {
+      for (const [ key, val ] of this.#forest.target_names.entries()) {
+        this.#finalForest.targets.push(new Target(parseInt(key), val));
+      }
     }
 
     for (const [ id, tree ] of this.#forest.trees.entries()) {
@@ -67,8 +78,13 @@ export class Parser {
       node.right = this.#parseNode(this.#rawTree['children_right'][tid], depth + 1);
       node.right.parent = node;
     } else {
-      const targetId = node.values.indexOf(Math.max(...node.values));
-      node.target = this.#finalForest.targets[targetId];
+      if (this.#finalForest.info.type == "regression") {
+        const val = node.values[0];
+        node.target = this.#finalForest.targets.find(t => (t.intervalMin <= val && t.intervalMax >= val));
+      } else {
+        const targetId = node.values.indexOf(Math.max(...node.values));
+        node.target = this.#finalForest.targets[targetId];
+      }
     }
     return node;
   }

@@ -11,6 +11,8 @@ import utils from "./utils.js";
 export default class RandomForest {
   info = {
     /** @type {?string} */
+    type: null,
+    /** @type {?string} */
     model: null,
     /** @type {?number} */
     testSize: null,
