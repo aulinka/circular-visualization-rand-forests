@@ -13,7 +13,7 @@ export class App {
     ui.init();
     await this.loadRandomForest();
     this.#rfv = new RandomForestView({
-      // targetRootNode: this.#rf.combinedTrees[0]
+      // targetRootNode: this.#rf.combinedTrees[0] // polkruh
     });
     this.#rfv.init();
     this.#rfv.onEnter();

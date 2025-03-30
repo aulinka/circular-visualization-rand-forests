@@ -71,7 +71,7 @@ export class RandomForestView {
     }
 
     let layersCount = 0;
-    if (!this.#isSingleTreeView) {
+    if (!this.#isSingleTreeView || true) {
       for (const tree of this.#rf.combinedTrees) {
         layersCount = Math.max(tree.layers.length, layersCount);
       }
@@ -187,7 +187,7 @@ export class RandomForestView {
     const isLeaf = node.feature == null;
     const nodeId = node.id;
     let angle = partOffset * (parseInt(nodeIndex)+1);
-    const randomAngleOffsetRatio = this.#isSingleTreeView && false ? partOffset : 0.05;
+    const randomAngleOffsetRatio = 0.05;
     angle += (seededRandom(nodeId) * randomAngleOffsetRatio) - (randomAngleOffsetRatio / 2);
     
     const x = Math.cos(angleStart + angle) * distance;
@@ -246,7 +246,7 @@ export class RandomForestView {
    */
   #generateTree(tree, angleStart, angleSize) {
     const treeLayersCount = tree.layers.length;
-    const startOffset = this.#isSingleTreeView ? 0 : 1;
+    const startOffset = this.#isSingleTreeView ? 1 : 1;
     for (let i = 0; i < treeLayersCount; i++) {
       const layer = tree.layers[i];
       const distance = ((i + startOffset) * this.#layerRadius);
@@ -270,7 +270,7 @@ export class RandomForestView {
 
   #generateTrees() {
     if (this.#isSingleTreeView) {
-      this.#generateTree(this.#targetCTree, 0, Math.PI*2);
+      this.#generateTree(this.#targetCTree, 0, Math.PI);
     } else {
       let i = 0;
       for (const segmentInfo of this.#segments) {
