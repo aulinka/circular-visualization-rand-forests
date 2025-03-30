@@ -2,6 +2,7 @@ import Entity from "./entity.js";
 import Feature from "./feature.js";
 import RandomForest from "./random_forest.js";
 import Target from "./target.js";
+import Tree from "./tree.js";
 import utils from "./utils.js";
 
 export default class Node extends Entity {
@@ -23,6 +24,8 @@ export default class Node extends Entity {
   depth;
   /** @type {?Object.<number,number>} */
   values;
+  /** @type {Tree} */
+  tree;
 
   constructor() {
     super('node');
@@ -33,6 +36,7 @@ export default class Node extends Entity {
     utils.resolveReferences(rf, this, 'left');
     utils.resolveReferences(rf, this, 'right');
     utils.resolveReferences(rf, this, 'parent');
+    utils.resolveReferences(rf, this, 'tree');
     this.feature = rf.features.find(x => x.id == this.feature);
     this.target = rf.targets.find(x => x.id == this.target);
   }
@@ -45,6 +49,7 @@ export default class Node extends Entity {
       parent: this.parent?.id,
       feature: this.feature?.id,
       target: this.target?.id,
+      tree: this.tree?.id,
     }
   }
 }

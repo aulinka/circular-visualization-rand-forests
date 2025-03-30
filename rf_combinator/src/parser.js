@@ -56,6 +56,7 @@ export class Parser {
     const isRootNode = depth == 0;
     node.depth = depth;
     node.values = this.#rawTree.values[tid][0];
+    node.tree = this.#finalTree;
 
     if (!isLeaf) {
       node.feature = this.#finalForest.features[this.#rawTree['features'][tid]];
