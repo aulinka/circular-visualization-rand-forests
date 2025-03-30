@@ -1,13 +1,22 @@
 import { RandomForest } from "rf_shared";
-import { panel } from "./panel/panel";
+import { ui } from "./ui/ui.js";
+import { RandomForestView } from "./random_forest_view.js";
+import { currentRf } from "./ui/uiState.svelte.js";
 
 export class App {
   /** @type {RandomForest} */
   #rf
 
+  #rfv;
+
   async init() {
-    panel.init();
+    ui.init();
     await this.loadRandomForest();
+    this.#rfv = new RandomForestView({
+      // targetRootNode: this.#rf.combinedTrees[0]
+    });
+    this.#rfv.init();
+    this.#rfv.onEnter();
   }
 
   getRandomForest() {
@@ -18,10 +27,9 @@ export class App {
     const res = await fetch('/tree.json');
     const json = await res.json();
     this.#rf = RandomForest.fromJSON(json);
-
-    const myData = { foo: 'bar' };
-    window.dispatchEvent(new CustomEvent('updateUI', { detail: myData }));
+    currentRf.set(this.#rf);
   }
 }
 
 export const app = new App();
+window.app = app;

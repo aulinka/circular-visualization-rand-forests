@@ -16,3 +16,11 @@ export function seededRandom(unsignedInt) {
   const hash = murmurhash3_32(unsignedInt);
   return (hash % 1000000) / 1000000; // Normalize to [0,1)
 }
+
+export function calculateAngle(x1, y1, x2, y2) {
+  const deltaX = x2 - x1;
+  const deltaY = y2 - y1;
+  const radians = Math.atan2(deltaY, deltaX);
+  const degrees = radians * (180 / Math.PI);
+  return degrees;
+}

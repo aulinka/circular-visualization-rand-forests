@@ -1,10 +1,27 @@
 import Konva from "konva";
+import { Stage } from "konva/lib/Stage.js";
 
-export const stage = new Konva.Stage({
+/** @type {Stage} */
+export const stage = new Stage({
   container: 'app',
   width: window.innerWidth,
   height: window.innerHeight,
   draggable: true
+});
+
+let onUnfocus;
+
+export function setOnUnfocus(callback) {
+  onUnfocus = callback;
+}
+
+export function unfocus() {
+  onUnfocus?.();
+  onUnfocus = null;
+}
+
+stage.on('click', e => {
+  unfocus();
 });
 
 var scaleBy = 1.1;

@@ -7,7 +7,9 @@
     {
       "type": "chrome",
       "request": "launch",
+      "skipFiles": ["${workspaceFolder}/node_modules/**/*.js"],
       "name": "Launch Chrome against localhost",
+      "sourceMaps": true,
       "url": "http://localhost:5173/",
       "webRoot": "${workspaceFolder}"
     }
