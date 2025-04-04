@@ -108,18 +108,17 @@ export class RandomForestView {
           strokeWidth: 1
         });
         this.#layers.crosshair?.add(line);
-        // const arc = new Arc({
-        //   x: this.#centerX,
-        //   y: this.#centerY,
-        //   innerRadius: 0,
-        //   outerRadius: treeRadius,
-        //   angle: radToDeg(segmentSize),
-        //   fill: 'rgba(255, 124, 124, 1.0)',
-        //   rotation: radToDeg(angle),
-        //   opacity: 0.0,
-        // });
-        // arc.setAttr('type', 'segment');
-        // this.#layers.nodes?.add(arc);
+        const arc = new Arc({
+          x: this.#centerX,
+          y: this.#centerY,
+          innerRadius: 0,
+          outerRadius: this.#layerRadius,
+          angle: radToDeg(segmentSize),
+          fill: 'rgba(255, 124, 124, 1.0)',
+          rotation: radToDeg(angle),
+          opacity: 0.3,
+        });
+        this.#layers.edges?.add(arc);
         this.#segments.push({angle, segmentSize});
       }
     }

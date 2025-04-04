@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
+    "@svelte-plugins/tooltips": "^4.0.0-beta.1",
     "konva": "^9.3.16",
     "rf_shared": "file:../rf_shared"
   }

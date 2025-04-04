@@ -13,6 +13,7 @@
 <Panel title="Random Forest" minimizeButton={true} bind:minimized={minimized}>
   {#if forestInfo != null}
     Name: {forestInfo.model}<br/>
-    Accuracy: {(forestInfo.accuracy * 100).toFixed(2)}%
+    Accuracy: {(forestInfo.accuracy * 100).toFixed(2)}%<br/>
+    Trees Count: {$currentRf.trees.length}
   {/if}
 </Panel>

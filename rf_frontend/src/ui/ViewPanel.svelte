@@ -3,7 +3,7 @@
 </script>
 <script>
   import { stage } from '../stage';
-
+  import { tooltip } from "@svelte-plugins/tooltips";
   import Panel from './Panel.svelte';
 
   async function screenshot(ratio) {
@@ -29,4 +29,5 @@
     <button onclick={() => screenshot(4)} type="button" class="btn btn-primary">4x</button>
     <button onclick={() => screenshot(8)} type="button" class="btn btn-primary">8x</button>
   </div>
+  <div class="btn" use:tooltip={{maxWidth: 400}} title="Creates screenshot of current view. Screenshot (1x), 2x, 4x and 8x means resolution of image. So when clicking to 4x, it means it will have 4 times higher resolution and details"><i class="bi bi-question-circle"></i></div>
 </Panel>
