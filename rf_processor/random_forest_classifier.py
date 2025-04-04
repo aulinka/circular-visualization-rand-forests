@@ -1,7 +1,7 @@
 from sklearn.datasets import load_iris, load_breast_cancer
 from sklearn.model_selection import train_test_split
 import sklearn.ensemble as ske
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
 import numpy
 import matplotlib.pyplot as plt
 from sklearn import tree
@@ -18,6 +18,8 @@ class RandomForestClassifier:
     def process(self):
         if self.config['model'] == "iris":
             self.model = load_iris()
+        elif self.config['model'] == "cancer":
+            self.model = load_breast_cancer()    
         else:
             self.model = self.load_model(self.config['model'])
 
@@ -31,6 +33,12 @@ class RandomForestClassifier:
         y_predicted = rfc.predict(x_test)
         self.accuracy = accuracy_score(y_test, y_predicted)
         self.rfc = rfc
+
+        self.y_test = y_test
+        self.y_predicted = y_predicted
+        self.conf_matrix = confusion_matrix(y_test, y_predicted)
+        print("Confusion Matrix (numeric display):")
+        print(self.conf_matrix)
 
     def load_model(self, model_path):
         df = pd.read_csv(model_path, header = 0)
@@ -95,6 +103,7 @@ class RandomForestClassifier:
 
         out["config"] = self.config
         out["accuracy"] = self.accuracy
+        out["confusion_matrix"] = (self.conf_matrix).tolist()
         out["max_forest_depth"] = forest_max_depth
         out["root_node_feature"] = root_node_feature
         out.update(feature_names_object)
@@ -113,3 +122,14 @@ class RandomForestClassifier:
             plt.savefig(f"rf{id}.png")
             plt.close()
             id += 1
+        
+    def display_conf_matrix(self):
+        labels = self.model.target_names
+        
+        disp = ConfusionMatrixDisplay(
+            confusion_matrix=self.conf_matrix,
+            display_labels=labels
+        )
+        disp.plot(cmap=plt.cm.Blues)
+        plt.title("Confusion Matrix")
+        plt.show()

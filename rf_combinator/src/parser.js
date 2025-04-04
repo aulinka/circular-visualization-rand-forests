@@ -24,6 +24,10 @@ export class Parser {
     this.#finalForest.info.randomState = this.#forest.config.random_state;
     this.#finalForest.info.testSize = this.#forest.config.test_size;
     this.#finalForest.info.accuracy = this.#forest.accuracy;
+    this.#finalForest.info.r2 = this.#forest.r2;
+    this.#finalForest.info.mse = this.#forest.mse;
+    this.#finalForest.info.mae = this.#forest.mae;
+    this.#finalForest.info.confusion_matrix = this.#forest.confusion_matrix;
 
     for (const [ key, val ] of this.#forest.feature_names.entries()) {
       this.#finalForest.features.push(new Feature(parseInt(key), val));

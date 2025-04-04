@@ -2,7 +2,7 @@ from sklearn.cluster import KMeans
 from sklearn.datasets import load_iris, load_breast_cancer, load_diabetes
 from sklearn.model_selection import train_test_split
 import sklearn.ensemble as skl
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import numpy
 import matplotlib.pyplot as plt
 from sklearn import tree
@@ -29,8 +29,11 @@ class RandomForestRegressor:
         rfr = skl.RandomForestRegressor(n_estimators=self.config['trees_count'],
                                      random_state=self.config['random_state'])
         rfr.fit(x_train, y_train)
-        # y_predicted = rfc.predict(x_test)
-        # self.accuracy = accuracy_score(y_test, y_predicted)
+        y_predicted = rfr.predict(x_test)
+        self.r2 = r2_score(y_test, y_predicted)
+        self.mse = mean_squared_error(y_test, y_predicted)
+        self.mae = mean_absolute_error(y_test, y_predicted) 
+
         self.rfr = rfr
         self.detect_clusters()
 
@@ -52,7 +55,6 @@ class RandomForestRegressor:
         kmeans.fit(leaf_values_reshaped)
         labels = kmeans.labels_
 
-        # Step 3: For every cluster, calculate the interval <min, max> of the values.
         self.intervals = {}
         for cluster in range(n_clusters):
             cluster_values = leaf_values[labels == cluster]
@@ -118,7 +120,9 @@ class RandomForestRegressor:
             tree_count += 1
 
         out["config"] = self.config
-        out["accuracy"] = self.accuracy
+        out["r2"] = self.r2
+        out["mse"] = self.mse
+        out["mae"] = self.mae
         out["targets"] = self.intervals
         out["max_forest_depth"] = forest_max_depth
         out["root_node_feature"] = root_node_feature
