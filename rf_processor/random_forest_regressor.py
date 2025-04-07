@@ -120,6 +120,7 @@ class RandomForestRegressor:
             tree_count += 1
 
         out["config"] = self.config
+        out["config"]["model"] = out["config"]["name"]
         out["r2"] = self.r2
         out["mse"] = self.mse
         out["mae"] = self.mae

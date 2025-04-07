@@ -1,10 +1,10 @@
 import { mount } from 'svelte'
-import App from './RightPanel.svelte'
+import App from './UI.svelte'
 
 export class UI {
   init() {
     const app = mount(App, {
-      target: document.getElementById('right-panel'),
+      target: document.getElementById('ui'),
     })
   }
 }

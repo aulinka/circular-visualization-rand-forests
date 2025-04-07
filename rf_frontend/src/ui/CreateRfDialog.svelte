@@ -1,0 +1,146 @@
+<script>
+  import { tooltip } from "@svelte-plugins/tooltips";
+  import { closeDialog, dialog } from "./dialog.svelte";
+  import { readInputFileAsText } from "../utils";
+    import { app } from "../app";
+
+  const formatHintText = `The first line of CSV must be header. The last column specifies the name of target/class in case of classification and numeric value in case of regression.
+Other columns are features. Only numeric features are supported.`;
+
+  let datasetFile = $state();
+  let datasetHeader = $state();
+  let formData = $state({
+    type: '', treesCount: '', randState: '', testRatio: '',
+  });
+
+  async function fileSelected() {
+    const file = datasetFile[0];
+    if (file == null) {
+      datasetHeader = null;
+      return;
+    }
+    const data = await readInputFileAsText(file);
+    const firstNewLinePos = data.indexOf('\n');
+    if (firstNewLinePos == -1) {
+      return alert('Invalid CSV supplied');
+    }
+    const header = data.substring(0, firstNewLinePos);
+    const fields = header.replaceAll('"','').split(',');
+    if (fields.length < 2) {
+      return alert('At least one feature and one target/numeric value name are required in header.');
+    }
+    for (const field of fields) {
+      if (!isNaN(field)) {
+        return alert('Header is not in CSV file. At least one feature and one target/numeric value name are required in header.');
+      }
+    }
+    datasetHeader = {
+      features: fields.slice(0, -1),
+      target: fields[fields.length - 1]
+    };
+  }
+
+  let createProgress = $state(null);
+
+  async function createRf() {
+    createProgress = 0;
+
+    var data = new FormData()
+    data.append('dataset', datasetFile[0]);
+    data.append('type', formData.type);
+    data.append('treesCount', formData.treesCount);
+    data.append('randState', formData.randState);
+    data.append('testRatio', formData.testRatio);
+
+    const response = await fetch('http://localhost:4444/generate/', {
+      method: 'POST',
+      body: data
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fileName = null;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const info = JSON.parse(decoder.decode(value));
+      if (info.error != null) {
+        // TODO:
+      }
+      if (info.progress != null) {
+        createProgress = info.progress;
+        if (info.progress == 100) {
+          fileName = info.file;
+        }
+      }
+    }
+
+    var data2 = new FormData()
+    data2.append('file', fileName);
+    const res = await fetch('http://localhost:4444/download', {
+      method: 'POST',
+      body: data2
+    });
+    const json = await res.json();
+    app.loadRandomForest(json);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    dialog.set(null);
+  }
+
+</script>
+
+<div class="modal-dialog modal-lg">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title fs-5">Create random forest</h1>
+      <button type="button" onclick={closeDialog} class="btn-close" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">CSV Dataset file</label>
+          <input onchange={fileSelected} bind:files={datasetFile} class="form-control" accept=".csv" type="file">
+          <div class="form-text">Download sample CSV <a href="/sample-dataset.csv">here</a>. <span class="btn-link p-0" use:tooltip={{maxWidth: 500}} title={formatHintText}>Format of data-set</span>.</div>
+        </div>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">Type of calculation</label>
+          <select bind:value={formData.type} class="form-select">
+            <option value="classification">Classification</option>
+            <option value="regression">Regression</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">Number of trees</label>
+          <input bind:value={formData.treesCount} type="number" class="form-control" placeholder="eg. 5">
+        </div>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">Random state number</label>
+          <input bind:value={formData.randState} type="number" class="form-control" placeholder="eg. 42">
+          <div class="form-text">Specify an initial random state (seed) to make the classification/regressions results reproducible. Using the same number will yield identical outcomes on each calculation.</div>
+        </div>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">Test Set Ratio</label>
+          <div class="input-group">
+            <input bind:value={formData.testRatio} type="number" class="form-control" placeholder="eg. 30">
+            <span class="input-group-text">%</span>
+          </div>
+          <div class="form-text">Enter the percentage of your dataset to reserve for testing. For example, if you input 30, then 30% of the data is used as the test set and the remaining 70% for training.</div>
+        </div>
+      </form>
+      {#if datasetHeader != null}
+        <hr/>
+        <b>Features: </b> {datasetHeader.features.join(', ')}<br/>
+        <b>Target: </b> {datasetHeader.target}
+      {/if}
+    </div>
+    <div class="modal-footer">
+      <button onclick={createRf} type="button" class="btn btn-primary" disabled={createProgress != null}>
+      {#if createProgress != null}
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        {createProgress}%
+      {:else}
+        Create
+      {/if}
+      </button>
+    </div>
+  </div>
+</div>

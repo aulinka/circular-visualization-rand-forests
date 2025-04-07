@@ -37,8 +37,8 @@ class RandomForestClassifier:
         self.y_test = y_test
         self.y_predicted = y_predicted
         self.conf_matrix = confusion_matrix(y_test, y_predicted)
-        print("Confusion Matrix (numeric display):")
-        print(self.conf_matrix)
+        # print("Confusion Matrix (numeric display):")
+        # print(self.conf_matrix)
 
     def load_model(self, model_path):
         df = pd.read_csv(model_path, header = 0)
@@ -102,6 +102,7 @@ class RandomForestClassifier:
             tree_count += 1
 
         out["config"] = self.config
+        out["config"]["model"] = out["config"]["name"]
         out["accuracy"] = self.accuracy
         out["confusion_matrix"] = (self.conf_matrix).tolist()
         out["max_forest_depth"] = forest_max_depth

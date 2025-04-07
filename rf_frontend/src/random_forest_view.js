@@ -159,7 +159,7 @@ export class RandomForestView {
       y: midY,
       // offsetX: 50,
       // offsetY: 10,
-      fontSize: 20,
+      fontSize: 16,
       fontFamily: 'Calibri',
       fill: 'black',
       rotation: rot,

@@ -1,7 +1,8 @@
 import { RandomForest } from "rf_shared";
 import { ui } from "./ui/ui.js";
 import { RandomForestView } from "./random_forest_view.js";
-import { currentRf } from "./ui/uiState.svelte.js";
+import { currentRf, selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
+import { stage } from "./stage.js";
 
 export class App {
   /** @type {RandomForest} */
@@ -11,7 +12,20 @@ export class App {
 
   async init() {
     ui.init();
-    await this.loadRandomForest();
+    if (true) { // Auto-load tree.json for easier debugging
+      const res = await fetch('/tree.json');
+      const json = await res.json();
+      this.loadRandomForest(json);
+    }
+  }
+
+  getRandomForest() {
+    return this.#rf;
+  }
+
+  loadRandomForest(jsonData) {
+    this.#rf = RandomForest.fromJSON(jsonData);
+    currentRf.set(this.#rf);
     this.#rfv = new RandomForestView({
       // targetRootNode: this.#rf.combinedTrees[0] // polkruh
     });
@@ -19,15 +33,11 @@ export class App {
     this.#rfv.onEnter();
   }
 
-  getRandomForest() {
-    return this.#rf;
-  }
-
-  async loadRandomForest() {
-    const res = await fetch('/tree.json');
-    const json = await res.json();
-    this.#rf = RandomForest.fromJSON(json);
-    currentRf.set(this.#rf);
+  closeRandomForest() {
+    selectedEdge.set(null);
+    selectedNode.set(null);
+    stage.destroyChildren();
+    currentRf.set(null);
   }
 }
 

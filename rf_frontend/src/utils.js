@@ -24,3 +24,20 @@ export function calculateAngle(x1, y1, x2, y2) {
   const degrees = radians * (180 / Math.PI);
   return degrees;
 }
+
+/**
+ * 
+ * @param {File} file 
+ * @returns {string}
+ */
+export function readInputFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      resolve(e.target.result);
+    };
+    reader.onerror = () => reject(new Error("Something failed during reading file"));
+  
+    reader.readAsText(file);
+  });
+}

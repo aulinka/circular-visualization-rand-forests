@@ -1,13 +1,17 @@
 import json
 import subprocess
 import sys
-from random_forest_clasifier import RandomForestClassifier
+from random_forest_classifier import RandomForestClassifier
 from random_forest_regressor import RandomForestRegressor
 
 def main():
     config = json.load(sys.stdin)
     try:
-        rf = RandomForestClassifier(config)
+        rf = None
+        if config['type'] == "classification":
+            rf = RandomForestClassifier(config)
+        elif config['type'] == "regression":
+            rf = RandomForestRegressor(config)
         rf.process()
         out = rf.generate_json()
         with open(config['output_file'], 'w') as f:
@@ -25,9 +29,9 @@ def main():
 
 def test():
     if True:
-        rf = RandomForestRegressor({
-            "type": "regression",
-            "model": "advertising.csv",
+        rf = RandomForestClassifier({
+            "type": "classification",
+            "model": "iris",
             "test_size": 0.3,
             "trees_count": 10,
             "random_state": 42,

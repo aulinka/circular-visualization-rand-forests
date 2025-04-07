@@ -1,0 +1,1 @@
+pyinstaller -F rf_processor.py

@@ -27,7 +27,7 @@ export class Parser {
     this.#finalForest.info.r2 = this.#forest.r2;
     this.#finalForest.info.mse = this.#forest.mse;
     this.#finalForest.info.mae = this.#forest.mae;
-    this.#finalForest.info.confusion_matrix = this.#forest.confusion_matrix;
+    this.#finalForest.info.confusionMatrix = this.#forest.confusion_matrix;
 
     for (const [ key, val ] of this.#forest.feature_names.entries()) {
       this.#finalForest.features.push(new Feature(parseInt(key), val));
