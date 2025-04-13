@@ -5,7 +5,7 @@ import { app } from "./app.js";
 import { calculateAngle, lerp, radToDeg, seededRandom } from "./utils.js";
 import { Arc } from "konva/lib/shapes/Arc.js";
 import Konva from "konva";
-import { selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
+import { viewSettings, selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
 
 export class RandomForestView {
   #config = {};
@@ -142,7 +142,7 @@ export class RandomForestView {
     const line = new Konva.Line({
       points: coords,
       stroke: isLeaf ? 'purple' : '#ffb347',
-      strokeWidth: lerp(0.5, 10, score ?? 0.1)
+      strokeWidth: lerp(1, 10, score ?? 0.1)
     });
 
     const midX = lerp(fromPos.x, toPos.x, 0.5);
@@ -322,8 +322,9 @@ export class RandomForestView {
    * @param {import("konva/lib/Node.js").KonvaEventObject<MouseEvent, Layer>} e 
    */
   #onEdgeClick(e) {
-    unfocus();
     let uiNode = e.target;
+    if (uiNode instanceof Konva.Arc) return;
+    unfocus();
     const ctEdge = this.findRfEntityByUiNode(uiNode);
     if (uiNode instanceof Konva.Text) {
       uiNode = this.findUiNodeByRfEntity(ctEdge, Konva.Line);
@@ -347,15 +348,55 @@ export class RandomForestView {
     }
   }
 
+  #onViewSettingsUpdate(viewSettings) {
+    unfocus();
+
+    for (const ele of this.#uiRfMap) {
+      if (ele.rfEntity instanceof CTEdge) {
+        const isLeaf = ele.rfEntity.to.target != null;
+        let visibility = true;
+        if (isLeaf) { // is leaf
+          if (viewSettings.hideEdgesToLeaves) {
+            visibility = false;
+          }
+          if (viewSettings.edgesToLeavesWithinLayers.min != null && 
+            ele.rfEntity.from.level < viewSettings.edgesToLeavesWithinLayers.min) {
+            visibility = false;
+          }
+          if (viewSettings.edgesToLeavesWithinLayers.max != null && 
+            ele.rfEntity.from.level > viewSettings.edgesToLeavesWithinLayers.max) {
+            visibility = false;
+          }
+        }
+        if (viewSettings.edgesWithinScore.min != null && 
+          ele.rfEntity.score < viewSettings.edgesWithinScore.min) {
+          visibility = false;
+        }
+        if (viewSettings.edgesWithinScore.max != null && 
+          ele.rfEntity.score > viewSettings.edgesWithinScore.max) {
+          visibility = false;
+        }
+        ele.uiNode.visible(visibility);
+        if (ele.uiNode instanceof Konva.Line) {
+          ele.uiNode.stroke(isLeaf ? viewSettings.nodeToLeafColor : viewSettings.nodeToNodeColor);
+        }
+      }      
+    }
+  }
+
+  #viewSettingsUnsubscribe = null;
+
   onEnter() {
     for (const layer of Object.values(this.#layers)) {
       if (layer != null) {
         stage.add(layer);
       }
     }
+    this.#viewSettingsUnsubscribe = viewSettings.subscribe((f) => this.#onViewSettingsUpdate(f));
   }
 
   onExit() {
+    this.#viewSettingsUnsubscribe();
     for (const layer of Object.values(this.#layers)) {
       if (layer != null) {
         layer.remove();

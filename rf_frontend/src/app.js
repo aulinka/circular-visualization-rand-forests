@@ -1,8 +1,8 @@
 import { RandomForest } from "rf_shared";
 import { ui } from "./ui/ui.js";
 import { RandomForestView } from "./random_forest_view.js";
-import { currentRf, selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
-import { stage } from "./stage.js";
+import { currentRf, resetViewSettings, selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
+import { stage, unfocus } from "./stage.js";
 
 export class App {
   /** @type {RandomForest} */
@@ -34,6 +34,8 @@ export class App {
   }
 
   closeRandomForest() {
+    unfocus();
+    resetViewSettings();
     selectedEdge.set(null);
     selectedNode.set(null);
     stage.destroyChildren();
