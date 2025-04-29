@@ -51,6 +51,8 @@ app.post('/generate', async (req, res) => {
   const outputTFilePath = path.resolve('./tmp/'+outputFileName+'.trff');
   const outputFilePath = path.resolve('./tmp/'+outputFileName+'.rff');
   try {
+    console.log('Received file ' + outputFileName);
+    console.log('Running RF processor...');
     const response = await runProcessor({
       "name": outputFileName,
       "model": req.files.dataset.tempFilePath,
@@ -63,16 +65,20 @@ app.post('/generate', async (req, res) => {
     if (response.success == false) {
       throw new Error('Running processor failed: ' + response.error);
     }
+    console.log('Parsing RF processor output...');
     res.write(JSON.stringify({progress: 50})+'\n');
     const parser = new Parser();
     const rf = parser.parse(await fs.readFile(outputTFilePath, 'utf-8'));
     res.write(JSON.stringify({progress: 75})+'\n');
     await fs.unlink(outputTFilePath);
+    console.log('Combining trees...');
     const combinator = new Combinator();
     combinator.combine(rf);
     await fs.writeFile(outputFilePath, JSON.stringify(rf, null, 2));
     res.write(JSON.stringify({progress: 100, file: outputFileName})+'\n');
+    console.log('Done!');
   } catch (ex) {
+    console.error('Generating failed', ex);
     res.write(JSON.stringify({error: ex.message})+'\n');
   }
   
@@ -96,6 +102,12 @@ app.post('/download', async (req, res) => {
 });
 
 export function start() {
-  app.listen(4444);
+  app.listen(4444, err => {
+    if (err != null) {
+      console.error('Failed to start server', err);
+      return;
+    }
+    console.log('Listening on :4444');
+  });
 }
 

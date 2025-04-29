@@ -5,7 +5,8 @@ import { app } from "./app.js";
 import { calculateAngle, lerp, radToDeg, seededRandom } from "./utils.js";
 import { Arc } from "konva/lib/shapes/Arc.js";
 import Konva from "konva";
-import { viewSettings, selectedEdge, selectedNode } from "./ui/uiState.svelte.js";
+import * as uiState from "./ui/uiState.svelte.js";
+import { get } from "svelte/store";
 
 export class RandomForestView {
   #config = {};
@@ -36,7 +37,7 @@ export class RandomForestView {
   
   /** @type {Object.<string,Layer?>} */
   #layers = {
-    "crosshair": null,
+    "conCircle": null,
     "edges": null,
     "nodes": null
   };
@@ -44,7 +45,6 @@ export class RandomForestView {
   constructor(config) {
     this.#config = config;
     this.#targetCTree = config?.targetRootNode;
-    this.#isSingleTreeView = this.#targetCTree != null;
   }
 
   /**
@@ -60,9 +60,9 @@ export class RandomForestView {
     return this.#uiRfMap.find(e => e.uiNode == uiNode)?.rfEntity;
   }
 
-  #generateCrosshair() {
+  #generateConCircle() {
     if (this.#targetCTree == null) {
-      this.#layers.crosshair.add(new Konva.Circle({
+      this.#layers.conCircle.add(new Konva.Circle({
         x: this.#centerX,
         y: this.#centerY,
         radius: 5,
@@ -71,19 +71,16 @@ export class RandomForestView {
     }
 
     let layersCount = 0;
-    if (!this.#isSingleTreeView || true) {
-      for (const tree of this.#rf.combinedTrees) {
-        layersCount = Math.max(tree.layers.length, layersCount);
-      }
-      layersCount += 1;
-    } else {
-      layersCount = this.#targetCTree.layers.length;
+    for (const tree of this.#rf.combinedTrees) {
+      layersCount = Math.max(tree.layers.length, layersCount);
     }
+    layersCount += 1;
+
     this.#totalLayersCount = layersCount;
     const treeRadius = (layersCount * this.#layerRadius);
 
     for (let i = 0; i < layersCount; i++) {
-      this.#layers.crosshair.add(new Konva.Circle({
+      this.#layers.conCircle.add(new Konva.Circle({
         x: this.#centerX,
         y: this.#centerY,
         radius: ((i + 1) * this.#layerRadius),
@@ -93,6 +90,7 @@ export class RandomForestView {
         dashEnabled: (i != layersCount-1)
       }));
     }
+    
 
     this.#segments = [];
     if (!this.#isSingleTreeView) {
@@ -107,7 +105,7 @@ export class RandomForestView {
           stroke: 'black',
           strokeWidth: 1
         });
-        this.#layers.crosshair?.add(line);
+        this.#layers.conCircle?.add(line);
         const arc = new Arc({
           x: this.#centerX,
           y: this.#centerY,
@@ -115,10 +113,11 @@ export class RandomForestView {
           outerRadius: this.#layerRadius,
           angle: radToDeg(segmentSize),
           fill: 'rgba(255, 124, 124, 1.0)',
-          rotation: radToDeg(angle),
-          opacity: 0.3,
+          rotation: radToDeg((Math.PI*2) - angle - segmentSize),
+          opacity: 0.0,
         });
         this.#layers.edges?.add(arc);
+        this.#uiRfMap.push({uiNode: arc, rfEntity: this.#rf.combinedTrees[i]});
         this.#segments.push({angle, segmentSize});
       }
     }
@@ -279,20 +278,50 @@ export class RandomForestView {
   }
 
   init() {
-    this.#uiRfMap = [];
     this.#layerRadius = 140;
     this.#centerX = stage.width() / 2;
     this.#centerY = stage.height() / 2;
     this.#rf = app.getRandomForest();
-    this.#layers.crosshair = new Layer({
+    this.#layers.conCircle = new Layer({
       listening: false
     });
     this.#layers.nodes = new Layer();
     this.#layers.nodes.on('click', e => this.#onNodeClick(e));
     this.#layers.edges = new Layer();
     this.#layers.edges.on('click', e => this.#onEdgeClick(e));
-    this.#generateCrosshair();
+    this.#render();
+
+    this.#zoomTheView();
+  }
+
+  #render() {
+    this.#isSingleTreeView = this.#targetCTree != null || this.#rf.combinedTrees.length == 1;
+    this.#uiRfMap = [];
+    for (const key of Object.keys(this.#layers)) {
+      this.#layers[key]?.destroyChildren();
+    }
+
+    this.#generateConCircle();
     this.#generateTrees();
+  }
+
+  #zoomTheView() {
+    const rect = this.#layers.nodes.getClientRect({ skipTransform: true });
+    const scaleX = stage.width()  / rect.width;
+    const scaleY = stage.height() / rect.height;
+    const scale  = Math.min(scaleX, scaleY);
+
+    const scaledWidth  = rect.width  * scale;
+    const scaledHeight = rect.height * scale;
+
+    const posOffsetX = (stage.width()  - scaledWidth ) / 2;
+    const posOffsetY = (stage.height() - scaledHeight) / 2;
+
+    stage.scale({ x: scale, y: scale });
+    stage.position({
+      x: -rect.x * scale + posOffsetX,
+      y: -rect.y * scale + posOffsetY
+    });
   }
 
   /**
@@ -308,11 +337,11 @@ export class RandomForestView {
       unfocus();
       const ctNode = this.findRfEntityByUiNode(uiNode);
       uiNode?.fill('red');
-      selectedNode.set(ctNode);
+      uiState.selectedNode.set(ctNode);
       e.cancelBubble = true;
       setOnUnfocus(() => {
         uiNode.fill('black');
-        selectedNode.set(null);
+        uiState.selectedNode.set(null);
       });
     }
   }
@@ -323,20 +352,31 @@ export class RandomForestView {
    */
   #onEdgeClick(e) {
     let uiNode = e.target;
-    if (uiNode instanceof Konva.Arc) return;
-    unfocus();
-    const ctEdge = this.findRfEntityByUiNode(uiNode);
-    if (uiNode instanceof Konva.Text) {
-      uiNode = this.findUiNodeByRfEntity(ctEdge, Konva.Line);
+    if (uiNode instanceof Konva.Arc) {
+      unfocus();
+      e.cancelBubble = true;
+      uiNode.opacity(0.3);
+      const ctree = this.findRfEntityByUiNode(uiNode);
+      uiState.selectedCTree.set(ctree);
+      setOnUnfocus(() => {
+        uiNode.opacity(0.0);
+        uiState.selectedCTree.set(null);
+      });
+    } else {
+      unfocus();
+      const ctEdge = this.findRfEntityByUiNode(uiNode);
+      if (uiNode instanceof Konva.Text) {
+        uiNode = this.findUiNodeByRfEntity(ctEdge, Konva.Line);
+      }
+      const defaultStroke = uiNode.stroke();
+      uiNode.stroke('red');
+      uiState.selectedEdge.set(ctEdge);
+      setOnUnfocus(() => {
+        uiNode.stroke(defaultStroke);
+        uiState.selectedEdge.set(null);
+      });
+      e.cancelBubble = true;
     }
-    const defaultStroke = uiNode.stroke();
-    uiNode.stroke('red');
-    selectedEdge.set(ctEdge);
-    setOnUnfocus(() => {
-      uiNode.stroke(defaultStroke);
-      selectedEdge.set(null);
-    });
-    e.cancelBubble = true;
   }
 
   deinit() {
@@ -380,11 +420,16 @@ export class RandomForestView {
         if (ele.uiNode instanceof Konva.Line) {
           ele.uiNode.stroke(isLeaf ? viewSettings.nodeToLeafColor : viewSettings.nodeToNodeColor);
         }
-      }      
+      } else if (ele.rfEntity instanceof CTNode) {
+        if (ele.uiNode instanceof Konva.Rect) {
+          ele.uiNode.fill(ele.rfEntity.target != null ? viewSettings.leafColor : viewSettings.nodeColor);
+        }
+      }  
     }
   }
 
   #viewSettingsUnsubscribe = null;
+  #currentCTreeUnsubscribe = null;
 
   onEnter() {
     for (const layer of Object.values(this.#layers)) {
@@ -392,11 +437,32 @@ export class RandomForestView {
         stage.add(layer);
       }
     }
-    this.#viewSettingsUnsubscribe = viewSettings.subscribe((f) => this.#onViewSettingsUpdate(f));
+    this.#viewSettingsUnsubscribe = uiState.viewSettings.subscribe((f) => this.#onViewSettingsUpdate(f));
+    let ignoredFirstCTreeEvent = false;
+    this.#currentCTreeUnsubscribe = uiState.currentCTree.subscribe((ctree) => {
+      if (!ignoredFirstCTreeEvent) {
+        ignoredFirstCTreeEvent = true;
+        return;
+      }
+      if (ctree != this.#targetCTree) {
+        unfocus();
+        uiState.selectedCTree.set(null);
+        uiState.clearViewSettings();
+        this.#targetCTree = ctree;
+        this.#render();
+        this.#zoomTheView();
+      }
+    });
   }
 
   onExit() {
+    unfocus();
+    uiState.selectedEdge.set(null);
+    uiState.selectedNode.set(null);
     this.#viewSettingsUnsubscribe();
+    this.#currentCTreeUnsubscribe();
+    uiState.currentCTree.set(null);
+    uiState.selectedCTree.set(null);
     for (const layer of Object.values(this.#layers)) {
       if (layer != null) {
         layer.remove();

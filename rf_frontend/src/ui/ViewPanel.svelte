@@ -5,7 +5,7 @@
   import { stage } from '../stage';
   import { tooltip } from "@svelte-plugins/tooltips";
   import Panel from './Panel.svelte';
-    import { viewSettings, resetViewSettings } from './uiState.svelte';
+  import { viewSettings, resetViewSettings } from './uiState.svelte';
 
   let viewSettingsState = $state({
     hideEdgesToLeaves: false,
@@ -17,6 +17,8 @@
     },
     nodeToNodeColor: '#ffb347',
     nodeToLeafColor: '#800080',
+    nodeColor: '#7ba7cc',
+    leafColor: '#98fb98',
   });
 
   async function screenshot(ratio) {
@@ -53,6 +55,8 @@
       f.edgesToLeavesWithinLayers.max = parseIntNull(viewSettingsState.edgesToLeavesWithinLayers.max);
       f.nodeToNodeColor = viewSettingsState.nodeToNodeColor;
       f.nodeToLeafColor = viewSettingsState.nodeToLeafColor;
+      f.nodeColor = viewSettingsState.nodeColor;
+      f.leafColor = viewSettingsState.leafColor;
       return f;
     });
   }
@@ -68,6 +72,8 @@
       },
       nodeToNodeColor: '#ffb347',
       nodeToLeafColor: '#800080',
+      nodeColor: '#7ba7cc',
+      leafColor: '#98fb98',
     };
   }
 
@@ -126,6 +132,26 @@
       <div class="col-auto">
         <label class="col-form-label pl-0" for="leafEdgeColorInput">
           Edge - Node to Leaf color
+        </label>
+      </div>
+    </div>
+    <div class="row mb-3 g-2">
+      <div class="col-auto">
+        <input bind:value={viewSettingsState.nodeColor} id="normalColorInput" class="form-control form-control-color" type="color">
+      </div>
+      <div class="col-auto">
+        <label class="col-form-label pl-0" for="normalColorInput">
+          Node color
+        </label>
+      </div>
+    </div>
+    <div class="row mb-3 g-2">
+      <div class="col-auto">
+        <input bind:value={viewSettingsState.leafColor} id="leafColorInput" class="form-control form-control-color" type="color">
+      </div>
+      <div class="col-auto">
+        <label class="col-form-label pl-0" for="leafColorInput">
+          Leaf color
         </label>
       </div>
     </div>

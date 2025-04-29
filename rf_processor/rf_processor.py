@@ -63,6 +63,7 @@ def test():
         result = json.loads(stdout)
         print(result)
 
+# If app is compiled to .exe, run main, else test
 if getattr(sys, 'frozen', False):
     main()
 else:

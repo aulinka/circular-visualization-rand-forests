@@ -24,6 +24,11 @@ stage.on('click', e => {
   unfocus();
 });
 
+export function reset() {
+  stage.position({x:0.0, y:0.0});
+  stage.scale({x:1.0,y:1.0});
+}
+
 var scaleBy = 1.1;
 stage.on('wheel', (e) => {
   // stop default scrolling
@@ -56,3 +61,5 @@ stage.on('wheel', (e) => {
   };
   stage.position(newPos);
 });
+
+window.stage = stage;

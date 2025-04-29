@@ -5,10 +5,10 @@
   import { onMount } from 'svelte';
   import { app } from '../app.js';
   import Panel from './Panel.svelte';
-  import { currentRf } from './uiState.svelte.js';
+  import { currentCTree, currentRf, selectedCTree } from './uiState.svelte.js';
   import { dialog } from './dialog.svelte.js';
   import CreateRfDialog from './CreateRfDialog.svelte';
-    import { readInputFileAsText } from '../utils.js';
+  import { readInputFileAsText } from '../utils.js';
 
   let forestInfo = $derived($currentRf?.info);
 
@@ -61,6 +61,14 @@
     app.closeRandomForest();
   }
 
+  function openSegment() {
+    currentCTree.set($selectedCTree);
+  }
+
+  function closeSegment() {
+    currentCTree.set(null);
+  }
+
 </script>
 <Panel title="Random Forest" minimizeButton={true} bind:minimized={minimized}>
   {#if forestInfo != null}
@@ -71,7 +79,19 @@
   {/if}
   {#if forestInfo != null}
     Name: {forestInfo.model}<br/>
-    Accuracy: {(forestInfo.accuracy * 100).toFixed(2)}%<br/>
-    Trees Count: {$currentRf.trees.length}
+    Trees Count: {$currentRf.trees.length}<br/>
+    {#if forestInfo.type === 'classification'}
+      Accuracy: {(forestInfo.accuracy * 100).toFixed(2)}%
+    {:else}
+      MSE: {forestInfo.mse}<br/>
+      MAE: {forestInfo.mae}<br/>
+      R2: {forestInfo.r2}<br/>
+    {/if}
+    <hr/>
+    {#if $currentCTree == null}
+      <button disabled={$selectedCTree == null} class="btn btn-primary" onclick={openSegment}>Open Segment</button>
+    {:else}
+      <button class="btn btn-primary" onclick={closeSegment}>Close Segment</button>
+    {/if}
   {/if}
 </Panel>

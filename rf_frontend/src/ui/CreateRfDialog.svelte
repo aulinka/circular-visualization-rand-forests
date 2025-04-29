@@ -99,7 +99,7 @@ Other columns are features. Only numeric features are supported.`;
         <div class="mb-3">
           <label for="formFile" class="form-label">CSV Dataset file</label>
           <input onchange={fileSelected} bind:files={datasetFile} class="form-control" accept=".csv" type="file">
-          <div class="form-text">Download sample CSV <a href="/sample-dataset.csv">here</a>. <span class="btn-link p-0" use:tooltip={{maxWidth: 500}} title={formatHintText}>Format of data-set</span>.</div>
+          <div class="form-text">Download sample CSV for <a href="/sample-dataset-classification.csv">classification</a>/<a href="/sample-dataset-regression.csv">regression</a>. <span class="btn-link p-0" use:tooltip={{maxWidth: 500}} title={formatHintText}>Format of data-set</span>.</div>
         </div>
         <div class="mb-3">
           <label for="formFile" class="form-label">Type of calculation</label>

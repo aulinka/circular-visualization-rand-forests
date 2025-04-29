@@ -20,6 +20,12 @@ export default class RandomForest {
     randomState: null,
     /** @type {?number} */
     accuracy: null,
+    /** @type {?number} */
+    mse: null,
+    /** @type {?number} */
+    mae: null,
+    /** @type {?number} */
+    r2: null,
   };
 
   /** @type {Feature[]} */
