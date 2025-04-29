@@ -13,7 +13,7 @@ export class App {
 
   async init() {
     ui.init();
-    if (true) { // Auto-load tree.json for easier debugging
+    if (false) { // Auto-load tree.json for easier debugging
       const res = await fetch('/tree.json');
       const json = await res.json();
       this.loadRandomForest(json);

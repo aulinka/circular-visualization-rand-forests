@@ -50,8 +50,8 @@ class RandomForestRegressor:
 
         leaf_values_reshaped = leaf_values.reshape(-1, 1)
 
-        n_clusters = 3 # TODO
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        n_clusters = self.config['clusters_count']
+        kmeans = KMeans(n_clusters=n_clusters, random_state=self.config['random_state'])
         kmeans.fit(leaf_values_reshaped)
         labels = kmeans.labels_
 

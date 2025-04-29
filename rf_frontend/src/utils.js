@@ -50,12 +50,10 @@ export function createNDJSONStream() {
       const lines = buffer.split('\n');
       buffer = lines.pop();
       for (const line of lines) {
-        console.log(line);
         if (line) controller.enqueue(JSON.parse(line));
       }
     },
     flush(controller) {
-      console.log(buffer);
       if (buffer) controller.enqueue(JSON.parse(buffer));
     }
   });

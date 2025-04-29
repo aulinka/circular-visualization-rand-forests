@@ -10,7 +10,7 @@ Other columns are features. Only numeric features are supported.`;
   let datasetFile = $state();
   let datasetHeader = $state();
   let formData = $state({
-    type: '', treesCount: '', randState: '', testRatio: '',
+    type: '', treesCount: '', randState: '', testRatio: '', clustersCount: ''
   });
 
   async function fileSelected() {
@@ -51,6 +51,9 @@ Other columns are features. Only numeric features are supported.`;
     data.append('treesCount', formData.treesCount);
     data.append('randState', formData.randState);
     data.append('testRatio', formData.testRatio);
+    if (formData.type == 'regression') {
+      data.append('clustersCount', formData.clustersCount);
+    }
 
     try {
       let response;
@@ -117,7 +120,7 @@ Other columns are features. Only numeric features are supported.`;
         <div class="mb-3">
           <label for="formFile" class="form-label">CSV Dataset file</label>
           <input onchange={fileSelected} bind:files={datasetFile} class="form-control" accept=".csv" type="file">
-          <div class="form-text">Download sample CSV for <a href="/sample-dataset-classification.csv">classification</a>/<a href="/sample-dataset-regression.csv">regression</a>. <span class="btn-link p-0" use:tooltip={{maxWidth: 500}} title={formatHintText}>Format of data-set</span>.</div>
+          <div class="form-text">Download sample CSV for <a href="sample-dataset-classification.csv">classification</a>/<a href="sample-dataset-regression.csv">regression</a>. <span class="btn-link p-0" use:tooltip={{maxWidth: 500}} title={formatHintText}>Format of data-set</span>.</div>
         </div>
         <div class="mb-3">
           <label for="formFile" class="form-label">Type of calculation</label>
@@ -143,6 +146,13 @@ Other columns are features. Only numeric features are supported.`;
           </div>
           <div class="form-text">Enter the percentage of your dataset to reserve for testing. For example, if you input 30, then 30% of the data is used as the test set and the remaining 70% for training.</div>
         </div>
+        {#if formData.type === 'regression'}
+          <div class="mb-3">
+            <label for="formFile" class="form-label">Number of clusters</label>
+            <input bind:value={formData.clustersCount} type="number" class="form-control" placeholder="eg. 3">
+            <div class="form-text">Number of clusters determines how many intervals the output values of the leaf trees are divided into.</div>
+          </div>
+        {/if}
       </form>
       {#if datasetHeader != null}
         <hr/>

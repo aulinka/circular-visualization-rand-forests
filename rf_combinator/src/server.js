@@ -55,7 +55,7 @@ app.post('/generate', async (req, res) => {
     console.log('Received file ' + outputFileName);
     console.log('Running RF processor...');
     await fs.mkdir('./tmp', { recursive: true });
-    const response = await runProcessor({
+    let cfg = {
       "name": outputFileName,
       "model": req.files.dataset.tempFilePath,
       "type": req.body.type,
@@ -63,7 +63,11 @@ app.post('/generate', async (req, res) => {
       "random_state": parseInt(req.body.randState),
       "trees_count": parseInt(req.body.treesCount),
       "output_file": outputTFilePath
-    });
+    };
+    if (req.body.type == 'regression') {
+      cfg["clusters_count"] = parseInt(req.body.clustersCount);
+    }
+    const response = await runProcessor(cfg);
     if (response.success == false) {
       throw new Error('Running processor failed: ' + response.error);
     }
