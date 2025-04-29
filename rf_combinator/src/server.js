@@ -8,7 +8,8 @@ import Combinator from './combinator.js';
 
 function runProcessor(config) {
   return new Promise((resolve, reject) => {
-    const proc = spawn('./rf_processor', [], { stdio: ['pipe', 'pipe', 'pipe'] });
+    const processorPath = path.resolve('./rf_processor' + (process.platform === "win32" ? ".exe" : ''));
+    const proc = spawn(processorPath, [], { stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
 
@@ -46,13 +47,14 @@ app.use(fileUpload({
 app.post('/generate', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'text/html');
-  res.write(JSON.stringify({progress: 0})+'\n');
+  res.write(JSON.stringify({progress: 5})+'\n');
   const outputFileName = req.files.dataset.name.split('.')[0];
   const outputTFilePath = path.resolve('./tmp/'+outputFileName+'.trff');
   const outputFilePath = path.resolve('./tmp/'+outputFileName+'.rff');
   try {
     console.log('Received file ' + outputFileName);
     console.log('Running RF processor...');
+    await fs.mkdir('./tmp', { recursive: true });
     const response = await runProcessor({
       "name": outputFileName,
       "model": req.files.dataset.tempFilePath,
@@ -82,7 +84,9 @@ app.post('/generate', async (req, res) => {
     res.write(JSON.stringify({error: ex.message})+'\n');
   }
   
-  await fs.unlink(req.files.dataset.tempFilePath);
+  try {
+    await fs.unlink(req.files.dataset.tempFilePath);
+  } catch(_) {}
   res.end();
 });
 
@@ -96,6 +100,7 @@ app.post('/download', async (req, res) => {
     if (err) {
       res.status(400);
       res.end();
+      return;
     }
     fs.unlink(outputFilePath);
   });

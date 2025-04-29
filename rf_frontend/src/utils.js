@@ -41,3 +41,22 @@ export function readInputFileAsText(file) {
     reader.readAsText(file);
   });
 }
+
+export function createNDJSONStream() {
+  let buffer = '';
+  return new TransformStream({
+    transform(chunk, controller) {
+      buffer += chunk;
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        console.log(line);
+        if (line) controller.enqueue(JSON.parse(line));
+      }
+    },
+    flush(controller) {
+      console.log(buffer);
+      if (buffer) controller.enqueue(JSON.parse(buffer));
+    }
+  });
+}

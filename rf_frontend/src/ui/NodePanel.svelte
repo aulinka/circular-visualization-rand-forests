@@ -21,7 +21,7 @@
         {#each $selectedNode.nodes as node}
           <button type="button" class="list-group-item list-group-item-action">
             {#if node.featureThreshold != null}THR: &lt;= <u data-tooltip={node.featureThreshold}>{node.featureThreshold.toFixed(6)}</u>, {/if}
-            NID: {node.id}, TNID: {node.treeNodeId}, 
+            EID: {node.id}, TNID: {node.treeNodeId}, 
             TUID: {node.tree.uid}</button>
         {/each}
       </div>

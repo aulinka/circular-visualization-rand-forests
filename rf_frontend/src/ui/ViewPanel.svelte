@@ -6,20 +6,10 @@
   import { tooltip } from "@svelte-plugins/tooltips";
   import Panel from './Panel.svelte';
   import { viewSettings, resetViewSettings } from './uiState.svelte';
+  import { onDestroy, onMount } from 'svelte';
+  import { get } from 'svelte/store';
 
-  let viewSettingsState = $state({
-    hideEdgesToLeaves: false,
-    edgesWithinScore: {
-      min: '', max: '',
-    },
-    edgesToLeavesWithinLayers: {
-      min: '', max: '',
-    },
-    nodeToNodeColor: '#ffb347',
-    nodeToLeafColor: '#800080',
-    nodeColor: '#7ba7cc',
-    leafColor: '#98fb98',
-  });
+  let viewSettingsState = $state({});
 
   async function screenshot(ratio) {
     const blob = await stage.toBlob({
@@ -47,34 +37,43 @@
   }
 
   function applyViewSettings() {
+    const floatFields = [
+      "edgesWithinScoreMin", "edgesWithinScoreMax",
+    ];
+    const intFields = [
+      "edgesToLeavesWithinLayersMin", "edgesToLeavesWithinLayersMax",
+    ];
+    
     viewSettings.update(f => {
-      f.hideEdgesToLeaves = viewSettingsState.hideEdgesToLeaves;
-      f.edgesWithinScore.min = parseFloatNull(viewSettingsState.edgesWithinScore.min);
-      f.edgesWithinScore.max = parseFloatNull(viewSettingsState.edgesWithinScore.max);
-      f.edgesToLeavesWithinLayers.min = parseIntNull(viewSettingsState.edgesToLeavesWithinLayers.min);
-      f.edgesToLeavesWithinLayers.max = parseIntNull(viewSettingsState.edgesToLeavesWithinLayers.max);
-      f.nodeToNodeColor = viewSettingsState.nodeToNodeColor;
-      f.nodeToLeafColor = viewSettingsState.nodeToLeafColor;
-      f.nodeColor = viewSettingsState.nodeColor;
-      f.leafColor = viewSettingsState.leafColor;
+      for (const key of Object.keys(f)) {
+        if (intFields.includes(key)) {
+          f[key] = parseIntNull(viewSettingsState[key]);
+        } else if (floatFields.includes(key)) {
+          f[key] = parseFloatNull(viewSettingsState[key]);
+        } else {
+          f[key] = viewSettingsState[key];
+        }
+      }
       return f;
     });
   }
 
-  function resetViewSettingsEvent() {
-    viewSettingsState = {
-      hideEdgesToLeaves: false,
-      edgesWithinScore: {
-        min: '', max: '',
-      },
-      edgesToLeavesWithinLayers: {
-        min: '', max: '',
-      },
-      nodeToNodeColor: '#ffb347',
-      nodeToLeafColor: '#800080',
-      nodeColor: '#7ba7cc',
-      leafColor: '#98fb98',
-    };
+  let settingsChangesUnsubscribe = null;
+
+  onMount(() => {
+    viewSettingsState = get(viewSettings);
+    settingsChangesUnsubscribe = viewSettings.subscribe(s => {
+      viewSettingsState = { ...s };
+    });
+  });
+
+  onDestroy(() => {
+    settingsChangesUnsubscribe();
+  });
+
+  function resetViewSettingsEvent(e) {
+    e.preventDefault();
+    resetViewSettings();
   }
 
   function onFormSubmit(e) {
@@ -102,17 +101,17 @@
     <div class="mb-3">
       <label class="form-label">Show edges with score in range</label>
       <div class="input-group mb-3">
-        <input bind:value={viewSettingsState.edgesWithinScore.min} type="number" min="0.0" step="0.1" class="form-control" placeholder="Min">
+        <input bind:value={viewSettingsState.edgesWithinScoreMin} type="number" min="0.0" step="0.1" class="form-control" placeholder="Min">
         <span class="input-group-text">-</span>
-        <input bind:value={viewSettingsState.edgesWithinScore.max} type="number" min="0.0" step="0.1" class="form-control" placeholder="Max">
+        <input bind:value={viewSettingsState.edgesWithinScoreMax} type="number" min="0.0" step="0.1" class="form-control" placeholder="Max">
       </div>
     </div>
     <div class="mb-3">
       <label class="form-label">Show edges to leaves in layers range</label>
       <div class="input-group mb-3">
-        <input bind:value={viewSettingsState.edgesToLeavesWithinLayers.min} min="0" type="number" class="form-control" placeholder="Min">
+        <input bind:value={viewSettingsState.edgesToLeavesWithinLayersMin} min="0" type="number" class="form-control" placeholder="Min">
         <span class="input-group-text">-</span>
-        <input bind:value={viewSettingsState.edgesToLeavesWithinLayers.max} min="0" type="number" class="form-control" placeholder="Max">
+        <input bind:value={viewSettingsState.edgesToLeavesWithinLayersMax} min="0" type="number" class="form-control" placeholder="Max">
       </div>
     </div>
     <div class="row mb-3 g-2">

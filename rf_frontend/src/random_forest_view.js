@@ -399,21 +399,21 @@ export class RandomForestView {
           if (viewSettings.hideEdgesToLeaves) {
             visibility = false;
           }
-          if (viewSettings.edgesToLeavesWithinLayers.min != null && 
-            ele.rfEntity.from.level < viewSettings.edgesToLeavesWithinLayers.min) {
+          if (viewSettings.edgesToLeavesWithinLayersMin != null && 
+            ele.rfEntity.from.level < viewSettings.edgesToLeavesWithinLayersMin) {
             visibility = false;
           }
-          if (viewSettings.edgesToLeavesWithinLayers.max != null && 
-            ele.rfEntity.from.level > viewSettings.edgesToLeavesWithinLayers.max) {
+          if (viewSettings.edgesToLeavesWithinLayersMax != null && 
+            ele.rfEntity.from.level > viewSettings.edgesToLeavesWithinLayersMax) {
             visibility = false;
           }
         }
-        if (viewSettings.edgesWithinScore.min != null && 
-          ele.rfEntity.score < viewSettings.edgesWithinScore.min) {
+        if (viewSettings.edgesWithinScoreMin != null && 
+          ele.rfEntity.score < viewSettings.edgesWithinScoreMin) {
           visibility = false;
         }
-        if (viewSettings.edgesWithinScore.max != null && 
-          ele.rfEntity.score > viewSettings.edgesWithinScore.max) {
+        if (viewSettings.edgesWithinScoreMax != null && 
+          ele.rfEntity.score > viewSettings.edgesWithinScoreMax) {
           visibility = false;
         }
         ele.uiNode.visible(visibility);

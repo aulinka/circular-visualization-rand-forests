@@ -16,12 +16,10 @@ export let currentCTree = writable(null);
 
 export let viewSettings = writable({
   hideEdgesToLeaves: false,
-  edgesWithinScore: {
-    min: null, max: null,
-  },
-  edgesToLeavesWithinLayers: {
-    min: null, max: null,
-  },
+  edgesWithinScoreMin: null,
+  edgesWithinScoreMax: null,
+  edgesToLeavesWithinLayersMin: null,
+  edgesToLeavesWithinLayersMax: null,
   nodeToNodeColor: '#ffb347',
   nodeToLeafColor: '#800080',
   nodeColor: '#7ba7cc',
@@ -31,12 +29,10 @@ export let viewSettings = writable({
 export function resetViewSettings() {
   viewSettings.set({
     hideEdgesToLeaves: false,
-    edgesWithinScore: {
-      min: null, max: null,
-    },
-    edgesToLeavesWithinLayers: {
-      min: null, max: null,
-    },
+    edgesWithinScoreMin: null,
+    edgesWithinScoreMax: null,
+    edgesToLeavesWithinLayersMin: null,
+    edgesToLeavesWithinLayersMax: null,
     nodeToNodeColor: '#ffb347',
     nodeToLeafColor: '#800080',
     nodeColor: '#7ba7cc',
@@ -49,12 +45,10 @@ export function clearViewSettings() {
     return {
       ...settings,
       hideEdgesToLeaves: false,
-      edgesWithinScore: {
-        min: null, max: null,
-      },
-      edgesToLeavesWithinLayers: {
-        min: null, max: null,
-      },
+      edgesWithinScoreMin: null,
+      edgesWithinScoreMax: null,
+      edgesToLeavesWithinLayersMin: null,
+      edgesToLeavesWithinLayersMax: null,
     };
   });
 }

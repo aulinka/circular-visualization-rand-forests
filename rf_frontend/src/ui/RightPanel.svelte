@@ -8,7 +8,7 @@
 </script>
 <main>
   <RandomForestPanel/>
-  {#if $currentRf != null && $currentRf.type == 'classification'}
+  {#if $currentRf != null && $currentRf.info.type == 'classification'}
     <ConfusionMatrixPanel/>
   {/if}
   {#if $selectedNode != null}

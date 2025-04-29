@@ -1,8 +1,8 @@
 <script>
   import { tooltip } from "@svelte-plugins/tooltips";
   import { closeDialog, dialog } from "./dialog.svelte";
-  import { readInputFileAsText } from "../utils";
-    import { app } from "../app";
+  import { createNDJSONStream, readInputFileAsText } from "../utils";
+  import { app } from "../app";
 
   const formatHintText = `The first line of CSV must be header. The last column specifies the name of target/class in case of classification and numeric value in case of regression.
 Other columns are features. Only numeric features are supported.`;
@@ -43,7 +43,7 @@ Other columns are features. Only numeric features are supported.`;
   let createProgress = $state(null);
 
   async function createRf() {
-    createProgress = 0;
+    createProgress = 5;
 
     var data = new FormData()
     data.append('dataset', datasetFile[0]);
@@ -52,38 +52,56 @@ Other columns are features. Only numeric features are supported.`;
     data.append('randState', formData.randState);
     data.append('testRatio', formData.testRatio);
 
-    const response = await fetch('http://localhost:4444/generate/', {
-      method: 'POST',
-      body: data
-    });
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fileName = null;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const info = JSON.parse(decoder.decode(value));
-      if (info.error != null) {
-        // TODO:
+    try {
+      let response;
+      try {
+        response = await fetch('http://localhost:4444/generate/', {
+          method: 'POST',
+          body: data
+        });
+      } catch(ex) {
+        alert('Failed to connect to RF Combinator. Please assure that combinator is running.');
+        createProgress = null;
+        return;
       }
-      if (info.progress != null) {
-        createProgress = info.progress;
-        if (info.progress == 100) {
-          fileName = info.file;
+      
+      const jsonStream = response.body
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(createNDJSONStream());
+
+      const reader = jsonStream.getReader();
+      let fileName = null;
+      while (true) {
+        const { value: info, done } = await reader.read();
+        if (done) break;
+        if (info.error != null) {
+          createProgress = null;
+          alert("Something failed during generation of Random Forest: " + info.error);
+          return;
+        }
+        if (info.progress != null) {
+          createProgress = info.progress;
+          if (info.progress == 100) {
+            fileName = info.file;
+          }
         }
       }
+
+      var data2 = new FormData()
+      data2.append('file', fileName);
+      const res = await fetch('http://localhost:4444/download', {
+        method: 'POST',
+        body: data2
+      });
+      const json = await res.json();
+      app.loadRandomForest(json);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      dialog.set(null);
+    } catch (ex) {
+      createProgress = null;
+      alert('Failed to generate random forest, reason: ' + ex);
     }
 
-    var data2 = new FormData()
-    data2.append('file', fileName);
-    const res = await fetch('http://localhost:4444/download', {
-      method: 'POST',
-      body: data2
-    });
-    const json = await res.json();
-    app.loadRandomForest(json);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    dialog.set(null);
   }
 
 </script>
