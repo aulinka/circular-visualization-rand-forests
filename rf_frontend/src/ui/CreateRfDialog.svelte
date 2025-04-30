@@ -41,8 +41,20 @@ Other columns are features. Only numeric features are supported.`;
   }
 
   let createProgress = $state(null);
+  let isEmpty = (s) => s == "" || s == null;
 
   async function createRf() {
+    if (datasetHeader == null ||
+        isEmpty(formData.type) ||
+        isEmpty(formData.treesCount) ||
+        isEmpty(formData.randState) ||
+        isEmpty(formData.testRatio) ||
+        (formData.type == 'regression' && (isEmpty(formData.clustersCount)))
+    ) {
+      alert('Some fields of form are not filled.');
+      return;
+    }
+
     createProgress = 5;
 
     var data = new FormData()
