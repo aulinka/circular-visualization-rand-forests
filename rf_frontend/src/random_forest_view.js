@@ -151,7 +151,7 @@ export class RandomForestView {
     const text = new Konva.Text({
       align: 'center',
       verticalAlign: 'middle',
-      text: `${(score).toFixed(2)}`,
+      text: `${(score).toFixed(3)}`,
       // width: 'auto',
       // height: 20,
       x: midX,
@@ -268,7 +268,7 @@ export class RandomForestView {
 
   #generateTrees() {
     if (this.#isSingleTreeView) {
-      this.#generateTree(this.#targetCTree, 0, Math.PI);
+      this.#generateTree(this.#targetCTree ?? this.#rf.combinedTrees[0], 0, Math.PI);
     } else {
       let i = 0;
       for (const segmentInfo of this.#segments) {

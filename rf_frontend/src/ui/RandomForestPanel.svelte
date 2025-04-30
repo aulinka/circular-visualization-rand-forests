@@ -31,6 +31,7 @@
         app.loadRandomForest(jsonData);
       } catch (err) {
         alert('Error reading or parsing JSON: ' + err);
+        console.log(err);
       } finally {
         document.body.removeChild(input);
       }
