@@ -42,6 +42,8 @@ export class RandomForestView {
     "nodes": null
   };
 
+  #treeEdgeScoreBounds = { min: 0.0, max: 0.0 };
+
   constructor(config) {
     this.#config = config;
     this.#targetCTree = config?.targetRootNode;
@@ -136,12 +138,14 @@ export class RandomForestView {
 
     const treesCount = this.#rf.trees.length;
     const score = edge.score;
+    const alignedScore = (edge.score - this.#treeEdgeScoreBounds.min) / (this.#treeEdgeScoreBounds.max - this.#treeEdgeScoreBounds.min);
 
     const coords = [fromPos.x, fromPos.y, toPos.x, toPos.y];
     const line = new Konva.Line({
       points: coords,
       stroke: isLeaf ? 'purple' : '#ffb347',
-      strokeWidth: lerp(1, 10, score ?? 0.1)
+      // strokeWidth: lerp(1, 10, score)
+      strokeWidth: lerp(3, 8, alignedScore)
     });
 
     const midX = lerp(fromPos.x, toPos.x, 0.5);
@@ -243,6 +247,14 @@ export class RandomForestView {
    * @param {*} angleSize 
    */
   #generateTree(tree, angleStart, angleSize) {
+    this.#treeEdgeScoreBounds.min = 2.0;
+    this.#treeEdgeScoreBounds.max = 0.0;
+
+    for (const edge of tree.edges) {
+      this.#treeEdgeScoreBounds.min = Math.min(this.#treeEdgeScoreBounds.min, edge.score);
+      this.#treeEdgeScoreBounds.max = Math.max(this.#treeEdgeScoreBounds.max, edge.score);
+    }
+
     const treeLayersCount = tree.layers.length;
     const startOffset = this.#isSingleTreeView ? 1 : 1;
     for (let i = 0; i < treeLayersCount; i++) {
