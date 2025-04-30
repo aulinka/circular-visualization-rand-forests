@@ -196,7 +196,7 @@ export class RandomForestView {
     const text = new Konva.Text({
       x: this.#centerX + x,
       y: this.#centerY + y,
-      width: 50,
+      width: 60,
       height: 30,
       text: isLeaf ? node.target.name : node.feature.name,
       rotation: rot,

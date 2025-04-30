@@ -49,15 +49,16 @@ app.post('/generate', async (req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.write(JSON.stringify({progress: 5})+'\n');
   const outputFileName = req.files.dataset.name.split('.')[0];
-  const outputTFilePath = path.resolve('./tmp/'+outputFileName+'.trff');
-  const outputFilePath = path.resolve('./tmp/'+outputFileName+'.rff');
+  const outputTFilePath = path.relative(process.cwd(), path.resolve('./tmp/'+outputFileName+'.trff'));
+  const outputFilePath = path.relative(process.cwd(), path.resolve('./tmp/'+outputFileName+'.rff'));
+  console.log(outputTFilePath, outputFilePath);
   try {
     console.log('Received file ' + outputFileName);
     console.log('Running RF processor...');
     await fs.mkdir('./tmp', { recursive: true });
     let cfg = {
       "name": outputFileName,
-      "model": req.files.dataset.tempFilePath,
+      "model": path.relative(process.cwd(), req.files.dataset.tempFilePath),
       "type": req.body.type,
       "test_size": parseInt(req.body.testRatio) / 100.0,
       "random_state": parseInt(req.body.randState),
