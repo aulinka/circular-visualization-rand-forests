@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { Parser } from './parser.js';
 import Combinator from './combinator.js';
+import open from 'open';
 
 function runProcessor(config) {
   return new Promise((resolve, reject) => {
@@ -111,13 +112,21 @@ app.post('/download', async (req, res) => {
   });
 });
 
+app.use(express.static('frontend'));
+
 export function start() {
-  app.listen(4444, err => {
+  app.listen(4444, async err => {
     if (err != null) {
       console.error('Failed to start server', err);
       return;
     }
     console.log('Listening on :4444');
+    fs.access(path.resolve("./frontend"))
+      .then(res => {
+        open("http://localhost:4444/");
+        console.log("Frontend is available on http://localhost:4444/");
+      })
+      .catch(_ => {});
   });
 }
 

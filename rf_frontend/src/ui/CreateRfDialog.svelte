@@ -3,6 +3,7 @@
   import { closeDialog, dialog } from "./dialog.svelte";
   import { createNDJSONStream, readInputFileAsText } from "../utils";
   import { app } from "../app";
+    import config from "../config";
 
   const formatHintText = `The first line of CSV must be header. The last column specifies the name of target/class in case of classification and numeric value in case of regression.
 Other columns are features. Only numeric features are supported.`;
@@ -70,7 +71,7 @@ Other columns are features. Only numeric features are supported.`;
     try {
       let response;
       try {
-        response = await fetch('http://localhost:4444/generate/', {
+        response = await fetch(config.serverAddress + '/generate/', {
           method: 'POST',
           body: data
         });
@@ -104,7 +105,7 @@ Other columns are features. Only numeric features are supported.`;
 
       var data2 = new FormData()
       data2.append('file', fileName);
-      const res = await fetch('http://localhost:4444/download', {
+      const res = await fetch(config.serverAddress + '/download', {
         method: 'POST',
         body: data2
       });
