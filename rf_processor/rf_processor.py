@@ -1,8 +1,19 @@
 import json
 import subprocess
 import sys
+import numpy as np
 from random_forest_classifier import RandomForestClassifier
 from random_forest_regressor import RandomForestRegressor
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 def main():
     config = json.load(sys.stdin)
@@ -15,7 +26,7 @@ def main():
         rf.process()
         out = rf.generate_json()
         with open(config['output_file'], 'w') as f:
-            json.dump(out, f)
+            json.dump(out, f, cls=NpEncoder)
         print(json.dumps({
             "success": True,
             "error": None
@@ -32,6 +43,7 @@ def test():
         rf = RandomForestClassifier({
             "type": "classification",
             "model": "iris",
+            "name": "test",
             "test_size": 0.3,
             "trees_count": 10,
             "random_state": 42,
@@ -39,7 +51,7 @@ def test():
         rf.process()
         out = rf.generate_json()
         with open('data.json', 'w') as f:
-            json.dump(out, f, indent=2)
+            json.dump(out, f, indent=2, cls=NpEncoder)
         # rf.generate_images()
     else:
         config = {
