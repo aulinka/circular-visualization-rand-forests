@@ -138,7 +138,7 @@ export class RandomForestView {
 
     const treesCount = this.#rf.trees.length;
     const score = edge.score;
-    const alignedScore = (edge.score - this.#treeEdgeScoreBounds.min) / (this.#treeEdgeScoreBounds.max - this.#treeEdgeScoreBounds.min);
+    const alignedScore = Math.max(0.0, (edge.score - this.#treeEdgeScoreBounds.min) / (this.#treeEdgeScoreBounds.max - this.#treeEdgeScoreBounds.min));
 
     const coords = [fromPos.x, fromPos.y, toPos.x, toPos.y];
     const line = new Konva.Line({

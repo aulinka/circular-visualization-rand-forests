@@ -19,3 +19,8 @@
     </div>
   {/if}
 </div>
+<style>
+  .card-body {
+    overflow-x: auto;
+  }
+</style>
